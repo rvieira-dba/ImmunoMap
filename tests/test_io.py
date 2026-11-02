@@ -75,3 +75,27 @@ def test_samplesheet_requires_columns(tmp_path):
     sheet.write_text("nome,arquivo\nA,a.csv\n", encoding="utf-8")
     with pytest.raises(ValueError, match="obrigatórias"):
         load_samplesheet(sheet)
+
+
+def test_kang_loader_maps_columns(tmp_path, monkeypatch):
+    import anndata as ad
+    import numpy as np
+    import pandas as pd
+    from immunomap import datasets
+
+    rng = np.random.default_rng(0)
+    obs = pd.DataFrame({
+        "label": ["ctrl", "stim"] * 6,
+        "replicate": ["p1"] * 4 + ["p2"] * 4 + ["p3"] * 4,
+        "cell_type": ["CD14+ Monocytes"] * 12,
+    }, index=[f"c{i}" for i in range(12)])
+    fake = ad.AnnData(rng.poisson(2, (12, 5)).astype(np.float32), obs=obs)
+    src = tmp_path / "kang.h5ad"
+    fake.write_h5ad(src)
+    monkeypatch.setattr(datasets, "_fetch", lambda url, dest: src)
+
+    a = datasets._load_kang2018(tmp_path)
+    assert set(a.obs["condition"]) == {"ctrl", "stim"}
+    assert a.obs["sample"].nunique() == 6
+    assert (a.obs["sample"].astype(str) == a.obs["donor"].astype(str) + "_" + a.obs["condition"].astype(str)).all()
+    assert "author_cell_type" in a.obs

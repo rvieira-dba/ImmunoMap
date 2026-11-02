@@ -38,7 +38,8 @@ def _fetch(url: str, dest: Path) -> Path:
         return dest
     tmp = dest.with_name(dest.name + ".part")
     try:
-        with urllib.request.urlopen(url, timeout=120) as r, open(tmp, "wb") as fh:
+        req = urllib.request.Request(url, headers={"User-Agent": "immunomap/0.1 (+https://github.com/rubenslyra/ImmunoMap)"})
+        with urllib.request.urlopen(req, timeout=120) as r, open(tmp, "wb") as fh:
             while chunk := r.read(1 << 20):
                 fh.write(chunk)
         tmp.replace(dest)
@@ -72,14 +73,12 @@ def _pick(obs: pd.DataFrame, *names: str) -> pd.Series:
     raise KeyError(f"Nenhuma das colunas {names} encontrada em obs: {list(obs.columns)}")
 
 
+KANG_URL = "https://exampledata.scverse.org/pertpy/kang_2018.h5ad"  # o mesmo arquivo do pertpy.data.kang_2018()
+
+
 def _load_kang2018(data_dir: Path) -> ad.AnnData:
-    try:
-        import pertpy as pt
-    except ImportError as exc:
-        raise RuntimeError(
-            "O conjunto Kang 2018 é baixado pelo pertpy: pip install -e \".[kang]\""
-        ) from exc
-    a = pt.dt.kang_2018()
+    path = _fetch(KANG_URL, Path(data_dir) / "brutos" / "kang_2018.h5ad")
+    a = ad.read_h5ad(path)
     from .io.readers import _counts_from_h5ad
 
     obs = a.obs.copy()
@@ -135,7 +134,7 @@ REGISTRY: Dict[str, Dataset] = {
         samples="16 amostras (8 pacientes × 2 condições)",
         citation="Kang, H. M. et al. Multiplexed droplet single-cell RNA-sequencing using natural genetic variation. Nat. Biotechnol. 36, 89 (2018).",
         doi="10.1038/nbt.4042",
-        source="pertpy.data.kang_2018() · GEO GSE96583",
+        source=KANG_URL + " (cópia do scverse/pertpy) · GEO GSE96583",
         loader=_load_kang2018,
     ),
     "pbmc_v2_v3": Dataset(

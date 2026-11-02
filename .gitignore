@@ -11,3 +11,5 @@ figuras/
 resultados/
 *.h5ad
 *.h5
+_to_delete/
+*.tar.gz

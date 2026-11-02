@@ -21,10 +21,12 @@ cd D:\source\Academicos-Projetos\ImmunoMap
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -e ".[dev]"
-# opcionais:
-pip install -e ".[kang]"    # baixar o Kang 2018 (pertpy)
-pip install -e ".[scvi]"    # integração com scVI
+pytest                      # confere a instalação
+# opcional:
+pip install -e ".[scvi]"    # integração com scVI (instala PyTorch, ~2 GB)
 ```
+
+Requer Python ≥ 3.10. As dependências foram conferidas para Windows com Python 3.14: todas têm pacote pronto (wheel), então nada precisa de compilador.
 
 ## Uso
 
@@ -81,7 +83,7 @@ O ImmunoMap exige **contagens brutas** (números inteiros). Dados já normalizad
 | chave | conjunto | amostras | pergunta | fonte |
 | --- | --- | --- | --- | --- |
 | `pbmc3k` | PBMC3k, 10x Genomics (2016) | 1 | O pipeline reencontra os tipos imunes? | `scanpy.datasets.pbmc3k()` |
-| `kang2018` | Kang et al. 2018, lúpus + IFN-β | 16 (8 pacientes × 2) | Como cada tipo responde ao interferon? | `pertpy` · GEO GSE96583 |
+| `kang2018` | Kang et al. 2018, lúpus + IFN-β | 16 (8 pacientes × 2) | Como cada tipo responde ao interferon? | cópia h5ad do scverse (a mesma do `pertpy`) · GEO GSE96583 |
 | `pbmc_v2_v3` | PBMC em Chromium v2 e v3 | 2 | Quanto é efeito técnico (lote)? | 10x Genomics (pbmc8k, pbmc_10k_v3) |
 
 Os downloads precisam de internet. Se algum endereço mudar, a mensagem de erro mostra qual URL falhou; ela fica em `src/immunomap/datasets.py`.
@@ -111,7 +113,7 @@ Para cada análise `<nome>`:
 ## Desenvolvimento
 
 ```powershell
-pytest        # 13 testes: leitores, planilha, pseudobulk, métricas, pipeline ponta a ponta, CLI
+pytest        # 14 testes: leitores, planilha, pseudobulk, métricas, pipeline ponta a ponta, CLI
 ```
 
 ## Referências
