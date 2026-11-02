@@ -1,0 +1,5 @@
+sample_id,condition,donor,path,format
+P1_ctrl,ctrl,P1,dados/meus/P1_ctrl_filtered_feature_bc_matrix.h5,10x-h5
+P1_stim,stim,P1,dados/meus/P1_stim_filtered_feature_bc_matrix.h5,10x-h5
+P2_ctrl,ctrl,P2,dados/meus/P2_ctrl/,10x-mtx
+P2_stim,stim,P2,dados/meus/P2_stim.csv,csv

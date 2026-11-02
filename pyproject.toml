@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "immunomap"
+version = "0.1.0"
+description = "Análise reprodutível de scRNA-seq com várias amostras: integração, anotação e expressão diferencial por pseudobulk"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [{name = "Rubens Lyra"}]
+keywords = ["scRNA-seq", "single-cell", "batch-correction", "harmony", "pseudobulk", "scanpy"]
+dependencies = [
+    "scanpy>=1.10",
+    "anndata>=0.10",
+    "leidenalg>=0.10",
+    "igraph>=0.10",
+    "harmonypy>=0.0.10",
+    "scikit-learn>=1.2",
+    "pandas>=2.0",
+    "matplotlib>=3.7",
+    "pydeseq2>=0.4",
+    "streamlit>=1.30",
+]
+
+[project.optional-dependencies]
+kang = ["pertpy>=0.7"]
+scvi = ["scvi-tools>=1.0"]
+bench = ["celltypist>=1.6"]
+dev = ["pytest>=7.0"]
+
+[project.scripts]
+immunomap = "immunomap.cli.main:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra"

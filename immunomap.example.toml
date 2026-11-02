@@ -1,0 +1,11 @@
+# Uso: immunomap run --dataset kang2018 --config immunomap.example.toml
+[immunomap]
+integration = "harmony"      # none | harmony | scvi
+resolution = 0.6
+n_pcs = 30
+min_genes_per_cell = 200
+max_genes_per_cell = 6000
+max_mito_percent = 15.0
+min_cells_pseudobulk = 10
+reference_condition = ""     # vazio = primeira condição em ordem alfabética (ex.: ctrl)
+random_state = 0
