@@ -1,14 +1,15 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "immunomap"
-version = "0.1.1"
+version = "0.2.0"
 description = "Análise reprodutível de scRNA-seq com várias amostras: integração, anotação e expressão diferencial por pseudobulk"
 readme = "README.md"
 requires-python = ">=3.10"
-license = {text = "MIT"}
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [{name = "Rubens Lyra"}]
 keywords = ["scRNA-seq", "single-cell", "batch-correction", "harmony", "pseudobulk", "scanpy"]
 dependencies = [

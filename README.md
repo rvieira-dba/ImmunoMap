@@ -64,6 +64,8 @@ immunomap run --dataset kang2018            # análise completa
 immunomap run --samples amostras.csv        # seus arquivos, descritos numa planilha
 immunomap run --input meus.h5ad --sample-col paciente --condition-col grupo --donor-col paciente
 immunomap run --dataset pbmc_v2_v3 --integration none   # ver o efeito de lote sem correção
+immunomap run --dataset pbmc3k --annotation-resolution 0.6 --seed 1   # ver o erro T CD8 → NK
+python benchmarks/anotacao_pbmc3k.py                   # sementes × resolução da anotação
 ```
 
 Formato da planilha ([`amostras.example.csv`](amostras.example.csv)):
@@ -107,13 +109,25 @@ Para cada análise `<nome>`:
 - **QC por amostra.** Cada amostra tem sua própria distribuição. O filtro de % mitocondrial só é aplicado se o arquivo tiver genes `MT-`.
 - **Contagens brutas preservadas** em `layers["counts"]`: o pseudobulk soma contagens, não valores normalizados.
 - **Genes variáveis por lote** (`batch_key=sample`): evita escolher genes que só diferenciam amostras.
+- **Anotação em grupos finos.** O nome de cada tipo vem de um Leiden mais fino (`annotation_resolution` = 1,5) do que o do mapa (`resolution` = 0,6). Cada grupo recebe um nome só; se um grupo grosso junta T CD8 e NK, todos viram NK. Concordância com os rótulos de especialistas do PBMC3k, sementes 0 a 4 ([`benchmarks/anotacao_pbmc3k.py`](benchmarks/anotacao_pbmc3k.py)):
+
+  | resolução da anotação | grupos | concordância média | pior semente |
+  | --- | --- | --- | --- |
+  | 0,6 | 7–9 | 87,9% | 82,6% |
+  | 1,0 | 10 | 97,0% | 96,5% |
+  | **1,5 (padrão)** | 12–13 | 97,4% | 96,9% |
+  | 2,0 | 18–20 | 97,8% | 97,6% |
+
+  A causa é a combinação de 30 componentes principais (padrão do ImmunoMap, pensado para conjuntos maiores) com a resolução 0,6: saem poucos grupos, e T CD8 e NK caem juntos. Com 10 componentes, como no Cell-Atlas, a resolução 0,6 fica estável (96,3–96,8%, `--n-pcs 10`). Anotando em 1,5, o resultado fica estável nos dois casos (96,7–97,8%).
+
+  Lição: um número de acurácia só vale junto com os parâmetros e as sementes testadas. (Medido no Linux com scanpy 1.11; outras versões do igraph/scanpy mudam alguns décimos.)
 - **Harmony** como padrão: rápido, roda na CPU e corrige o PCA sem mexer nas contagens. As métricas antes/depois mostram se ajudou.
 - **Pseudobulk + DESeq2**: o teste compara **amostras**, não células. Assim, mil células de um paciente contam como um paciente, e não como mil réplicas. O desenho fica pareado (`~donor + condition`) quando cada doador aparece nas duas condições.
 
 ## Desenvolvimento
 
 ```powershell
-pytest        # 14 testes: leitores, planilha, pseudobulk, métricas, pipeline ponta a ponta, CLI
+pytest        # 16 testes: leitores, planilha, pseudobulk, métricas, pipeline ponta a ponta, CLI
 ```
 
 ## Referências

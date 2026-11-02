@@ -50,3 +50,21 @@ def test_end_to_end_recovers_stimulated_gene(toy_counts, tmp_path):
     assert set(res.de["desenho"]) == {"pareado"}
     assert (tmp_path / "r" / "toy" / "expressao_diferencial.csv").exists()
 
+
+
+def test_cell_types_named_on_finer_partition(toy_counts, tmp_path):
+    res = run(toy_counts.copy(), _cfg(tmp_path, resolution=0.3, annotation_resolution=2.0, integration="none"),
+              save=False, compute_de=False)
+    obs = res.adata.obs
+    assert "leiden_anotacao" in obs
+    assert obs["leiden_anotacao"].nunique() >= obs["leiden"].nunique()
+    # one name per fine group, and the score table is indexed by the fine groups
+    assert (obs.groupby("leiden_anotacao", observed=True)["cell_type"].nunique() == 1).all()
+    assert res.scores.index.name == "leiden_anotacao"
+
+
+def test_annotation_resolution_must_be_positive(tmp_path):
+    import pytest
+
+    with pytest.raises(ValueError):
+        _cfg(tmp_path, annotation_resolution=0)

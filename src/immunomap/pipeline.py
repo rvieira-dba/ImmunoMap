@@ -52,7 +52,8 @@ def run(adata: ad.AnnData, cfg: Config, progress: Progress = None, save: bool = 
 
     rep = steps.integrate(adata, cfg, progress)
     steps.embed_and_cluster(adata, rep, cfg, progress)
-    scores = steps.annotate(adata, cfg, progress=progress)
+    fine = steps.annotation_clusters(adata, cfg, progress)
+    scores = steps.annotate(adata, cfg, groupby=fine, progress=progress)
     if multi:  # same final cell-type labels for both embeddings: a fair before/after
         metrics["sem integração"] = steps.integration_metrics(adata, "X_pca", cfg.sample_key, seed=cfg.random_state)
         if rep != "X_pca":

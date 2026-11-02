@@ -2,6 +2,19 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · [SemVer](https://semver.org/).
 
+## [0.2.0] - 2026-11-02
+
+### Alterado
+- Os tipos celulares são nomeados num agrupamento Leiden mais fino (`annotation_resolution`, padrão 1,5), separado da resolução do mapa (`resolution`, 0,6). Um grupo grosso podia juntar dois tipos parecidos, como T CD8 e NK, e cada grupo recebe um nome só. No PBMC3k (30 componentes principais, sementes 0 a 4), a concordância com os rótulos de especialistas passou de 82,6–96,7% para 96,9–97,8%.
+- Novo parâmetro no app ("Resolução da anotação"), na CLI (`--annotation-resolution`) e no TOML. O mapa pode ser colorido pelo grupo fino.
+
+### Adicionado
+- `benchmarks/anotacao_pbmc3k.py`: reproduz a comparação de sementes × resolução (e `--n-pcs` para comparar com o Cell-Atlas).
+
+### Corrigido
+- App: integração padrão volta a ser Harmony, como na CLI e no README (estava "Sem integração").
+- Licença declarada no formato SPDX (`license = "MIT"`), como pede o setuptools ≥ 77. Some o aviso `project.license as a TOML table is deprecated` na instalação.
+
 ## [0.1.1] - 2026-11-02
 
 ### Corrigido

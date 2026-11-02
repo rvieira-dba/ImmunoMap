@@ -25,6 +25,7 @@ def _config(args) -> Config:
     over = {k: v for k, v in {
         "integration": getattr(args, "integration", None),
         "resolution": getattr(args, "resolution", None),
+        "annotation_resolution": getattr(args, "annotation_resolution", None),
         "random_state": getattr(args, "seed", None),
         "data_dir": getattr(args, "data_dir", None),
     }.items() if v is not None}
@@ -115,7 +116,9 @@ def build_parser() -> argparse.ArgumentParser:
     src.add_argument("--input", type=Path, help="um arquivo já combinado (.h5ad, .h5, .csv)")
     r.add_argument("--sample-col"); r.add_argument("--condition-col"); r.add_argument("--donor-col")
     r.add_argument("--integration", choices=INTEGRATIONS)
-    r.add_argument("--resolution", type=float)
+    r.add_argument("--resolution", type=float, help="grupos do mapa (padrão 0.6)")
+    r.add_argument("--annotation-resolution", type=float,
+                   help="grupos finos usados só para nomear os tipos (padrão 1.5)")
     r.add_argument("--seed", type=int)
     r.add_argument("--no-de", action="store_true", help="pula a expressão diferencial")
     r.add_argument("--data-dir", type=Path); r.add_argument("-c", "--config", type=Path)

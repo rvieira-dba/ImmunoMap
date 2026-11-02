@@ -161,8 +161,14 @@ if adata is not None:
 # ------------------------------------------------------------------ 2. parâmetros
 st.header("2. Parâmetros")
 with st.expander("Ajustar (os padrões servem para PBMC)", expanded=False):
-    integration = st.selectbox("Integração entre amostras", INTEGRATIONS, format_func=INTEGRATION_LABELS.get)
-    resolution = st.slider("Resolução do Leiden (zoom dos grupos)", 0.1, 2.0, 0.6, 0.1)
+    integration = st.selectbox("Integração entre amostras", INTEGRATIONS, index=INTEGRATIONS.index("harmony"),
+                               format_func=INTEGRATION_LABELS.get,
+                               help="Com uma amostra só, a integração é pulada automaticamente.")
+    resolution = st.slider("Resolução do Leiden (zoom dos grupos do mapa)", 0.1, 2.0, 0.6, 0.1)
+    annotation_resolution = st.slider(
+        "Resolução da anotação", 0.5, 3.0, 1.5, 0.1,
+        help="Grupos mais finos, usados só para dar nome aos tipos celulares. Evita que dois tipos "
+             "parecidos (ex.: T CD8 e NK) caiam no mesmo grupo e recebam um nome só.")
     n_pcs = st.slider("Componentes principais", 10, 50, 30, 5)
     min_genes = st.number_input("Mínimo de genes por célula", 50, 2000, 200, 50)
     max_genes = st.number_input("Máximo de genes por célula", 1000, 15000, 6000, 500)
@@ -174,7 +180,8 @@ with st.expander("Ajustar (os padrões servem para PBMC)", expanded=False):
 # ------------------------------------------------------------------ 3. rodar
 st.header("3. Rodar")
 if st.button("Rodar análise", type="primary", disabled=adata is None, use_container_width=True):
-    cfg = Config(integration=integration, resolution=float(resolution), n_pcs=int(n_pcs),
+    cfg = Config(integration=integration, resolution=float(resolution),
+                 annotation_resolution=float(annotation_resolution), n_pcs=int(n_pcs),
                  min_genes_per_cell=int(min_genes), max_genes_per_cell=int(max_genes),
                  max_mito_percent=float(max_mito), random_state=int(seed))
     with st.status("Analisando…", expanded=True) as s:
@@ -213,9 +220,10 @@ if res is not None:
             st.dataframe(sig.groupby("cell_type").size().rename("genes (padj < 0,05; |log2FC| > 1)"), use_container_width=True)
 
     with tabs[1]:
-        color = st.selectbox("Colorir por", ["cell_type", "sample", "condition", "donor", "leiden"],
+        color = st.selectbox("Colorir por", ["cell_type", "sample", "condition", "donor", "leiden", "leiden_anotacao"],
                              format_func={"cell_type": "tipo celular", "sample": "amostra", "condition": "condição",
-                                          "donor": "doador", "leiden": "grupo Leiden"}.get)
+                                          "donor": "doador", "leiden": "grupo Leiden",
+                                          "leiden_anotacao": "grupo fino (anotação)"}.get)
         before = "X_umap_sem_integracao" in a.obsm and st.toggle("Mostrar antes da integração")
         if before:
             a.obsm["X_umapsem"] = a.obsm["X_umap_sem_integracao"]

@@ -35,9 +35,13 @@ class Config:
     # Integration and clustering
     integration: str = "harmony"
     n_neighbors: int = 15
-    resolution: float = 0.6
+    resolution: float = 0.6  # groups shown on the map
 
     # Annotation
+    # Cell types are named on a finer Leiden partition than the one shown on the map: a coarse
+    # cluster can merge two types (CD8 T + NK in PBMC3k) and a cluster gets a single name.
+    # PBMC3k, 5 seeds: 82.6–96.7% agreement with expert labels at 0.6, 96.9–97.8% at 1.5.
+    annotation_resolution: float = 1.5
     min_annotation_score: float = 0.5
     marker_genes: Dict[str, List[str]] = field(default_factory=lambda: {
         "T cells": ["CD3E", "CD3D", "IL7R"],
@@ -59,8 +63,8 @@ class Config:
             raise ValueError(f"integration must be one of {INTEGRATIONS}")
         if self.min_genes_per_cell >= self.max_genes_per_cell:
             raise ValueError("min_genes_per_cell must be lower than max_genes_per_cell")
-        if self.n_pcs < 2 or self.n_neighbors < 2 or self.resolution <= 0:
-            raise ValueError("n_pcs and n_neighbors must be >= 2 and resolution > 0")
+        if self.n_pcs < 2 or self.n_neighbors < 2 or self.resolution <= 0 or self.annotation_resolution <= 0:
+            raise ValueError("n_pcs and n_neighbors must be >= 2; resolution and annotation_resolution > 0")
 
     def ensure_dirs(self) -> None:
         for d in (self.data_dir, self.results_dir, self.figures_dir):

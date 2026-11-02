@@ -105,14 +105,24 @@ def integrate(adata: ad.AnnData, cfg: Config, progress: Progress = None) -> str:
 
 
 def embed_and_cluster(adata: ad.AnnData, rep: str, cfg: Config, progress: Progress = None,
-                      umap_key: str = "X_umap") -> None:
+                      umap_key: str = "X_umap", compute_umap: bool = True) -> None:
     _say(progress, f"Vizinhança, UMAP e Leiden ({rep})")
     sc.pp.neighbors(adata, n_neighbors=cfg.n_neighbors, use_rep=rep, random_state=cfg.random_state)
-    sc.tl.umap(adata, random_state=cfg.random_state)
-    if umap_key != "X_umap":
-        adata.obsm[umap_key] = adata.obsm["X_umap"].copy()
+    if compute_umap:
+        sc.tl.umap(adata, random_state=cfg.random_state)
+        if umap_key != "X_umap":
+            adata.obsm[umap_key] = adata.obsm["X_umap"].copy()
     sc.tl.leiden(adata, resolution=cfg.resolution, key_added="leiden", flavor="igraph",
                  n_iterations=2, random_state=cfg.random_state)
+
+
+def annotation_clusters(adata: ad.AnnData, cfg: Config, progress: Progress = None,
+                        key: str = "leiden_anotacao") -> str:
+    """Finer Leiden partition on the current neighbour graph, used only to name cell types."""
+    _say(progress, f"Grupos finos para a anotação (resolução {cfg.annotation_resolution:g})")
+    sc.tl.leiden(adata, resolution=cfg.annotation_resolution, key_added=key, flavor="igraph",
+                 n_iterations=2, random_state=cfg.random_state)
+    return key
 
 
 # ------------------------------------------------------------------ annotation

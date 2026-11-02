@@ -13,3 +13,5 @@ resultados/
 *.h5
 _to_delete/
 *.tar.gz
+# cache do scanpy.datasets (pbmc3k_raw, pbmc3k_processed)
+data/
