@@ -7,6 +7,7 @@ and normalisation happens on a copy in ``X``.
 from __future__ import annotations
 
 import logging
+import os
 import warnings
 from typing import Callable, Dict, List, Optional, Tuple
 
@@ -72,7 +73,8 @@ def normalise_and_reduce(adata: ad.AnnData, cfg: Config, progress: Progress = No
         warnings.filterwarnings("ignore", message="zero-centering a sparse array/matrix densifies it")
         sc.pp.scale(hvg, max_value=10)
     n_pcs = min(cfg.n_pcs, hvg.n_vars - 1, hvg.n_obs - 1)
-    sc.tl.pca(hvg, n_comps=n_pcs, random_state=cfg.random_state)
+    # covariance_eigh: exact like arpack (differences ~1e-11 on Kang 2018) and ~4x faster on dense data.
+    sc.tl.pca(hvg, n_comps=n_pcs, random_state=cfg.random_state, svd_solver="covariance_eigh")
     adata.obsm["X_pca"] = hvg.obsm["X_pca"]
     adata.uns["pca"] = hvg.uns["pca"]
     return adata
@@ -116,15 +118,16 @@ def integrate(adata: ad.AnnData, cfg: Config, progress: Progress = None) -> str:
 
 
 def embed_and_cluster(adata: ad.AnnData, rep: str, cfg: Config, progress: Progress = None,
-                      umap_key: str = "X_umap", compute_umap: bool = True) -> None:
-    _say(progress, f"Vizinhança, UMAP e Leiden ({rep})")
+                      umap_key: str = "X_umap", compute_umap: bool = True, cluster: bool = True) -> None:
+    _say(progress, f"Vizinhança, UMAP{' e Leiden' if cluster else ''} ({rep})")
     sc.pp.neighbors(adata, n_neighbors=cfg.n_neighbors, use_rep=rep, random_state=cfg.random_state)
     if compute_umap:
         sc.tl.umap(adata, random_state=cfg.random_state)
         if umap_key != "X_umap":
             adata.obsm[umap_key] = adata.obsm["X_umap"].copy()
-    sc.tl.leiden(adata, resolution=cfg.resolution, key_added="leiden", flavor="igraph",
-                 n_iterations=2, random_state=cfg.random_state)
+    if cluster:
+        sc.tl.leiden(adata, resolution=cfg.resolution, key_added="leiden", flavor="igraph",
+                     n_iterations=2, random_state=cfg.random_state)
 
 
 def annotation_clusters(adata: ad.AnnData, cfg: Config, progress: Progress = None,
@@ -240,22 +243,39 @@ def pseudobulk(adata: ad.AnnData, cfg: Config, layer: str = "counts") -> Tuple[p
     return counts[keep.values], meta[keep]
 
 
-def _report_deseq_warnings(caught, cell_type: str, progress: Progress) -> None:
-    """PyDESeq2 warnings as one short note per message (or re-raised as warnings without a progress sink)."""
-    seen = set()
-    for w in caught:
-        msg = str(w.message)
-        if msg in seen:
-            continue
-        seen.add(msg)
-        if progress is None:
-            warnings.warn(msg, w.category, stacklevel=2)
-        elif "did not converge" in msg:
-            progress(f"   nota ({cell_type}): a curva de dispersão não convergiu; o DESeq2 usou a média (comum em grupos pequenos)")
-        elif "residual degrees of freedom is less than 3" in msg:
-            progress(f"   nota ({cell_type}): poucas réplicas para o desenho; a dispersão fica menos precisa")
-        else:
-            progress(f"   nota do DESeq2 ({cell_type}): {msg}")
+def _deseq_note(msg: str, cell_type: str) -> str:
+    """A PyDESeq2 warning as one short note in Portuguese."""
+    if "did not converge" in msg:
+        return f"   nota ({cell_type}): a curva de dispersão não convergiu; o DESeq2 usou a média (comum em grupos pequenos)"
+    if "residual degrees of freedom is less than 3" in msg:
+        return f"   nota ({cell_type}): poucas réplicas para o desenho; a dispersão fica menos precisa"
+    return f"   nota do DESeq2 ({cell_type}): {msg}"
+
+
+def _deseq_one(cell_type: str, counts: pd.DataFrame, md: pd.DataFrame, design: str,
+               ref: str, others: List[str]) -> Tuple[str, Dict[str, pd.DataFrame], List[str], float]:
+    """DESeq2 for one cell type. Module-level so a worker process can run it; uses one core."""
+    import time
+    from pydeseq2.dds import DeseqDataSet
+    from pydeseq2.ds import DeseqStats
+
+    t0 = time.perf_counter()
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        dds = DeseqDataSet(counts=counts, metadata=md, design=design, quiet=True, n_cpus=1)
+        dds.deseq2()
+        out = {}
+        for other in others:
+            st = DeseqStats(dds, contrast=["condition", other, ref], quiet=True, n_cpus=1)
+            st.summary()
+            out[other] = st.results_df.copy()
+    msgs = list(dict.fromkeys(str(w.message) for w in caught))
+    return cell_type, out, msgs, time.perf_counter() - t0
+
+
+def _n_workers(cfg: Config, n_tasks: int) -> int:
+    cpus = cfg.n_jobs if cfg.n_jobs > 0 else (os.cpu_count() or 1)
+    return max(1, min(cpus, n_tasks))
 
 
 def differential_expression(counts: pd.DataFrame, meta: pd.DataFrame, cfg: Config,
@@ -263,16 +283,17 @@ def differential_expression(counts: pd.DataFrame, meta: pd.DataFrame, cfg: Confi
     """
     DESeq2 (PyDESeq2) per cell type on pseudobulk counts. Paired design
     ``~donor + condition`` when every donor appears in both conditions.
-    """
-    from pydeseq2.dds import DeseqDataSet
-    from pydeseq2.ds import DeseqStats
 
+    Cell types are independent, so they run in parallel, one per process
+    (``cfg.n_jobs``, 0 = every core). Results are the same as one at a time.
+    """
     conditions = sorted(meta["condition"].unique())
     if len(conditions) < 2:
         return pd.DataFrame()
     ref = cfg.reference_condition or conditions[0]
     others = [c for c in conditions if c != ref]
-    results = []
+
+    jobs = []
     for cell_type in sorted(meta["cell_type"].unique()):
         if cell_type == UNASSIGNED:
             continue
@@ -282,29 +303,50 @@ def differential_expression(counts: pd.DataFrame, meta: pd.DataFrame, cfg: Confi
             continue  # need ≥2 replicates per condition
         c = counts.loc[m.index]
         c = c.loc[:, c.sum(axis=0) >= 10]
-        paired = m.groupby("donor")["condition"].nunique().eq(len(conditions)).all() and m["donor"].nunique() > 1
-        design = "~donor + condition" if paired else "~condition"
-        _say(progress, f"Expressão diferencial: {cell_type} ({'pareado' if paired else 'não pareado'})")
+        paired = bool(m.groupby("donor")["condition"].nunique().eq(len(conditions)).all() and m["donor"].nunique() > 1)
         md = m[["condition", "donor"]].copy()
         md["condition"] = pd.Categorical(md["condition"], categories=[ref] + others)
-        with warnings.catch_warnings(record=True) as caught:
-            warnings.simplefilter("always")
-            dds = DeseqDataSet(counts=c, metadata=md, design=design, quiet=True, n_cpus=1)
-            dds.deseq2()
-            stats = {}
-            for other in others:
-                st = DeseqStats(dds, contrast=["condition", other, ref], quiet=True, n_cpus=1)
-                st.summary()
-                stats[other] = st
-        _report_deseq_warnings(caught, cell_type, progress)
-        for other, st in stats.items():
-            r = st.results_df.copy()
+        jobs.append((cell_type, c, md, "~donor + condition" if paired else "~condition", paired))
+    if not jobs:
+        return pd.DataFrame()
+
+    paired_of = {j[0]: j[4] for j in jobs}
+    label = lambda ct: f"{ct} ({'pareado' if paired_of[ct] else 'não pareado'})"
+    done = {}
+
+    def collect(item):
+        ct, out, msgs, secs = item
+        done[ct] = out
+        _say(progress, f"Expressão diferencial: {label(ct)} · {secs:.0f} s")
+        for msg in msgs:
+            if progress is None:
+                warnings.warn(msg, UserWarning, stacklevel=3)
+            else:
+                progress(_deseq_note(msg, ct))
+
+    workers = _n_workers(cfg, len(jobs))
+    if workers > 1:
+        _say(progress, f"Expressão diferencial: {len(jobs)} tipos celulares em paralelo ({workers} processos)")
+        try:
+            from joblib import Parallel, delayed
+
+            run = Parallel(n_jobs=workers, backend="loky", return_as="generator_unordered")
+            for item in run(delayed(_deseq_one)(ct, c, md, design, ref, others) for ct, c, md, design, _ in jobs):
+                collect(item)
+        except Exception as exc:  # noqa: BLE001 — some machines refuse worker processes
+            _say(progress, f"   o paralelo falhou ({type(exc).__name__}); seguindo um tipo de cada vez")
+    for ct, c, md, design, _ in jobs:
+        if ct not in done:
+            collect(_deseq_one(ct, c, md, design, ref, others))
+
+    results = []
+    for ct, *_ in jobs:
+        for other, r in done[ct].items():
+            r = r.copy()
             r.insert(0, "gene", r.index)
             r.insert(0, "contraste", f"{other} vs {ref}")
-            r.insert(0, "cell_type", cell_type)
-            r["desenho"] = "pareado" if paired else "não pareado"
+            r.insert(0, "cell_type", ct)
+            r["desenho"] = "pareado" if paired_of[ct] else "não pareado"
             results.append(r.reset_index(drop=True))
-    if not results:
-        return pd.DataFrame()
     out = pd.concat(results, ignore_index=True)
     return out.sort_values(["cell_type", "padj"], na_position="last")

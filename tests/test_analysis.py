@@ -91,3 +91,21 @@ def test_per_cell_column_refused_as_sample(toy_counts, tmp_path):
     a.obs["sample"] = [f"c{i}" for i in range(a.n_obs)]  # e.g. a barcode or nCount_RNA
     with pytest.raises(ValueError, match="medida"):
         normalise_design(a.obs, _cfg(tmp_path))
+
+
+def test_parallel_de_matches_one_at_a_time(toy_counts, tmp_path):
+    a = toy_counts.copy()
+    cfg1 = _cfg(tmp_path, resolution=0.3, integration="none", n_jobs=1)
+    res = run(a, cfg1, save=False)
+    counts, meta = steps.pseudobulk(res.adata, cfg1)
+    serial = steps.differential_expression(counts, meta, cfg1)
+    parallel = steps.differential_expression(counts, meta, _cfg(tmp_path, n_jobs=2))
+    cols = ["cell_type", "gene", "log2FoldChange", "padj", "desenho"]
+    pd.testing.assert_frame_equal(serial[cols].reset_index(drop=True), parallel[cols].reset_index(drop=True))
+
+
+def test_n_jobs_must_not_be_negative(tmp_path):
+    import pytest
+
+    with pytest.raises(ValueError):
+        _cfg(tmp_path, n_jobs=-1)

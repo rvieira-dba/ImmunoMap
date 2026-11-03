@@ -2,6 +2,27 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · [SemVer](https://semver.org/).
 
+## [0.3.1] - 2026-11-03
+
+### Alterado
+- **Análise mais rápida, com os mesmos resultados.** No Kang 2018 com 2 núcleos, a linha de comando caiu de cerca de 4,5 para 3,5 minutos, e o app, para cerca de 3. O Streamlit não era a causa: o tempo estava em três etapas.
+  - **Expressão diferencial:** o DESeq2 roda um tipo celular por processo, em paralelo (147 → cerca de 95 s com 2 núcleos; com mais núcleos, o ganho cresce). Novo parâmetro `n_jobs` (`--jobs` na CLI): 0 usa todos os núcleos e 1 roda um tipo de cada vez. Se o paralelo falhar, a análise continua um tipo de cada vez.
+  - **Compilação do numba:** a primeira busca de vizinhos de cada processo leva cerca de 30 s compilando código. O app faz isso em segundo plano assim que abre, enquanto você escolhe os dados.
+  - **PCA:** passou a usar o método `covariance_eigh`. É exato como o `arpack` (diferença de cerca de 1e-11) e cerca de 4 vezes mais rápido (12,6 → 3,5 s).
+- O mapa "antes da integração" não roda mais o Leiden, cujo resultado era descartado.
+- App: as figuras e o `.zip` são gerados uma vez por análise e reaproveitados. Antes, cada clique redesenhava todas as abas; agora só a parte que mudou é atualizada (cerca de 0,4 s para trocar a cor do mapa).
+
+### Corrigido
+- App: trocar a cor do mapa ou o tipo celular do volcano fazia a página voltar para a aba "Resumo". Agora a aba continua aberta.
+- App: o terminal mostrava "Please replace `use_container_width` with `width`" a cada clique (27 vezes numa sessão, no Streamlit 1.66). Os botões, imagens e tabelas passaram a usar `width="stretch"`.
+- App: o aviso do scanpy sobre centralizar matriz esparsa ainda podia aparecer quando a análise começava durante a compilação em segundo plano. O `warnings.catch_warnings()` do Python não é seguro entre threads, e o numba entra e sai dele enquanto compila. O filtro agora vale para o processo todo, definido antes de a thread começar.
+- Versões mínimas corrigidas: Streamlit ≥ 1.50 (o app usa `st.fragment`, `st.logo(size=…)` e `width="stretch"`) e scikit-learn ≥ 1.5 (com versões anteriores, o scanpy troca o `covariance_eigh` pelo `arpack` e avisa).
+
+### Verificado
+- Kang 2018 de ponta a ponta: as 57.908 linhas da expressão diferencial são idênticas às da 0.3.0 (log2FC e padj), os rótulos são os mesmos em 100% das células e as métricas de integração não mudam.
+- PBMC3k: com `covariance_eigh` e com `arpack`, os rótulos saem idênticos, célula a célula, nas 40 combinações do benchmark (30 e 10 componentes × 5 sementes × 4 resoluções). A tabela de concordância do README não muda.
+- 21 testes, entre eles um que compara o DESeq2 em paralelo com o de um tipo de cada vez.
+
 ## [0.3.0] - 2026-11-02
 
 ### Corrigido

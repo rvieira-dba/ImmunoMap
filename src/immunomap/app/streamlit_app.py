@@ -31,6 +31,41 @@ ASSETS = Path(__file__).resolve().parent / "assets"
 st.set_page_config(page_title="ImmunoMap", page_icon=str(ASSETS / "logo.png"), layout="centered",
                    initial_sidebar_state="collapsed")
 st.logo(str(ASSETS / "logo.png"), size="large")
+
+
+@st.cache_resource(show_spinner=False)
+def _warm_up():
+    """Compile numba's neighbour search once per server, in the background (about 30 s on 2 cores).
+
+    The first neighbour search of each process pays this compilation; done while the user picks the
+    data, the analysis itself starts warm. Needs a large input: a small one takes another code path.
+    """
+    import threading
+    import warnings
+
+    # numba enters and leaves warnings.catch_warnings() while it compiles, and catch_warnings() is not
+    # thread-safe: it can undo the filter that steps.normalise_and_reduce sets for this expected warning
+    # (6 leaks in 249 tries). A process-wide filter set before the thread starts survives (0 in 237).
+    warnings.filterwarnings("ignore", message="zero-centering a sparse array/matrix densifies it")
+
+    def work():
+        try:
+            import anndata as ad
+            import numpy as np
+            import scanpy as sc
+
+            w = ad.AnnData(np.zeros((20000, 1), dtype="float32"))
+            w.obsm["X_pca"] = np.random.default_rng(0).normal(size=(20000, 30)).astype("float32")
+            sc.pp.neighbors(w, n_neighbors=15, use_rep="X_pca", random_state=0)
+        except Exception:  # noqa: BLE001 — warm-up is only an optimisation
+            pass
+
+    thread = threading.Thread(target=work, name="immunomap-aquecimento", daemon=True)
+    thread.start()
+    return thread
+
+
+_warm_up()
 st.markdown(
     """<style>
     .block-container {padding-top: 1.2rem; padding-bottom: 3rem; max-width: 760px;}
@@ -74,7 +109,7 @@ if source == "Conjunto conhecido":
         st.markdown(f"**{d.samples}.** {d.summary}")
         st.markdown(f"**Pergunta:** {d.question}")
         st.caption(f"{d.citation}" + (f" · doi:{d.doi}" if d.doi else "") + f" · Fonte: {d.source}")
-    if st.button("Carregar conjunto", type="primary", use_container_width=True):
+    if st.button("Carregar conjunto", type="primary", width="stretch"):
         with st.status("Carregando (o primeiro uso baixa os dados)…", expanded=True) as s:
             try:
                 st.session_state["input"] = _known(key, str(data_dir))
@@ -96,9 +131,9 @@ elif source.startswith("Enviar arquivos"):
             "condicao": ["controle"] * len(files),
             "doador": [""] * len(files),
         })
-        table = st.data_editor(default, hide_index=True, use_container_width=True, disabled=["arquivo"],
+        table = st.data_editor(default, hide_index=True, width="stretch", disabled=["arquivo"],
                                key=f"sheet_{len(files)}")
-        if st.button("Ler arquivos", type="primary", use_container_width=True):
+        if st.button("Ler arquivos", type="primary", width="stretch"):
             if table["amostra"].duplicated().any():
                 st.error("Cada amostra precisa de um nome único.")
             else:
@@ -143,7 +178,7 @@ else:
             donor_opts = ["(nenhuma)"] + cols
             donor_col = st.selectbox("Coluna do doador (opcional)", donor_opts,
                                      index=_guess(donor_opts, ["donor", "doador", "replicate", "patient", "paciente", "ind"]))
-            if st.button("Usar este arquivo", type="primary", use_container_width=True):
+            if st.button("Usar este arquivo", type="primary", width="stretch"):
                 try:
                     a = read_counts(path)
                     a.obs = meta.reindex(a.obs_names).copy()
@@ -166,7 +201,7 @@ if adata is not None:
     c3.metric("Condições", obs["condition"].nunique())
     with st.expander("Amostras carregadas"):
         st.dataframe(obs.groupby("sample", observed=True).agg(condicao=("condition", "first"), doador=("donor", "first"),
-                                                              celulas=("condition", "size")), use_container_width=True)
+                                                              celulas=("condition", "size")), width="stretch")
 
 # ------------------------------------------------------------------ 2. parâmetros
 st.header("2. Parâmetros")
@@ -189,25 +224,45 @@ with st.expander("Ajustar (os padrões servem para PBMC)", expanded=False):
 
 # ------------------------------------------------------------------ 3. rodar
 st.header("3. Rodar")
-if st.button("Rodar análise", type="primary", disabled=adata is None, use_container_width=True):
+run_area = st.container()  # always present, so the elements below keep their place between reruns
+if run_area.button("Rodar análise", type="primary", disabled=adata is None, width="stretch"):
     cfg = Config(integration=integration, resolution=float(resolution),
                  annotation_resolution=float(annotation_resolution), n_pcs=int(n_pcs),
                  min_genes_per_cell=int(min_genes), max_genes_per_cell=int(max_genes),
                  max_mito_percent=float(max_mito), random_state=int(seed))
-    with st.status("Analisando…", expanded=True) as s:
+    with run_area.status("Analisando…", expanded=True) as s:
         try:
             res = run(adata.copy(), cfg, progress=s.write, compute_de=do_de,
                       name=st.session_state.get("input_name", "analise"))
             st.session_state["result"], st.session_state["cfg"] = res, cfg
+            st.session_state["result_id"] = st.session_state.get("result_id", 0) + 1
+            st.session_state["cache"] = {}
             s.update(label="Análise concluída", state="complete", expanded=False)
         except Exception as exc:  # noqa: BLE001
             s.update(label="A análise falhou", state="error")
-            st.error(str(exc))
+            run_area.error(str(exc))
 if adata is None:
-    st.caption("Carregue os dados no passo 1 para liberar este botão.")
+    run_area.caption("Carregue os dados no passo 1 para liberar este botão.")
 
 # ------------------------------------------------------------------ 4. resultados
 res = st.session_state.get("result")
+
+
+def _cached(key, make):
+    """Build once per result (figures as PNG, the zip): clicks then only swap images."""
+    cache = st.session_state.setdefault("cache", {})
+    if key not in cache:
+        cache[key] = make()
+    return cache[key]
+
+
+def _png(fig) -> bytes:
+    buf = io.BytesIO()
+    fig.savefig(buf, format="png", dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    return buf.getvalue()
+
+
 if res is not None:
     cfg = st.session_state["cfg"]
     a = res.adata
@@ -222,56 +277,66 @@ if res is not None:
             st.subheader("Integração")
             st.dataframe(pd.DataFrame(res.metrics).T.rename(columns={"mistura_lotes": "mistura de amostras",
                                                                      "separacao_tipos": "separação de tipos"}).round(2),
-                         use_container_width=True)
+                         width="stretch")
             st.caption("Ambos vão de 0 a 1. Boa integração aumenta a mistura de amostras sem derrubar a separação de tipos.")
         if not res.de.empty:
             sig = res.de[(res.de["padj"] < 0.05) & (res.de["log2FoldChange"].abs() > 1)]
             st.subheader("Genes diferenciais por tipo")
-            st.dataframe(sig.groupby("cell_type").size().rename("genes (padj < 0,05; |log2FC| > 1)"), use_container_width=True)
+            st.dataframe(sig.groupby("cell_type").size().rename("genes (padj < 0,05; |log2FC| > 1)"), width="stretch")
 
-    with tabs[1]:
+    @st.fragment
+    def _tab_mapa():
         color = st.selectbox("Colorir por", ["cell_type", "sample", "condition", "donor", "leiden", "leiden_anotacao"],
                              format_func={"cell_type": "tipo celular", "sample": "amostra", "condition": "condição",
                                           "donor": "doador", "leiden": "grupo Leiden",
                                           "leiden_anotacao": "grupo fino (anotação)"}.get)
         before = "X_umap_sem_integracao" in a.obsm and st.toggle("Mostrar antes da integração")
-        if before:
-            a.obsm["X_umapsem"] = a.obsm["X_umap_sem_integracao"]
-        fig = plots.umap_panels(a, [color], basis="umapsem" if before else "umap")
-        st.pyplot(fig, use_container_width=True)
-        plt.close(fig)
+
+        def _umap():
+            if before:
+                a.obsm["X_umapsem"] = a.obsm["X_umap_sem_integracao"]
+            return _png(plots.umap_panels(a, [color], basis="umapsem" if before else "umap"))
+
+        st.image(_cached(("umap", color, before), _umap), width="stretch")
         st.caption("O mapa serve para ver vizinhanças. Distâncias entre ilhas e tamanhos de ilhas não são medidas.")
 
-    with tabs[2]:
-        fig = plots.composition_bars(res.composition, cfg.condition_key)
-        st.pyplot(fig, use_container_width=True)
-        plt.close(fig)
-        st.dataframe(res.composition, use_container_width=True)
+    with tabs[1]:
+        _tab_mapa()
 
-    with tabs[3]:
+    with tabs[2]:
+        st.image(_cached("composicao", lambda: _png(plots.composition_bars(res.composition, cfg.condition_key))),
+                 width="stretch")
+        st.dataframe(res.composition, width="stretch")
+
+    @st.fragment
+    def _tab_diferencial():
         if res.de.empty:
             st.info("Sem expressão diferencial: é preciso ter 2 condições e pelo menos 2 amostras por condição em cada tipo.")
-        else:
-            ct = st.selectbox("Tipo celular", sorted(res.de["cell_type"].unique()))
-            fig = plots.volcano(res.de, ct)
-            st.pyplot(fig, use_container_width=True)
-            plt.close(fig)
-            d = res.de[res.de["cell_type"] == ct]
-            st.caption(f"{d['contraste'].iloc[0]} · desenho {d['desenho'].iloc[0]} · DESeq2 em pseudobulk (contagens somadas por amostra)")
-            st.dataframe(d[["gene", "log2FoldChange", "padj", "baseMean"]].head(200).round(4),
-                         use_container_width=True, hide_index=True)
+            return
+        ct = st.selectbox("Tipo celular", sorted(res.de["cell_type"].unique()))
+        st.image(_cached(("volcano", ct), lambda: _png(plots.volcano(res.de, ct))), width="stretch")
+        d = res.de[res.de["cell_type"] == ct]
+        st.caption(f"{d['contraste'].iloc[0]} · desenho {d['desenho'].iloc[0]} · DESeq2 em pseudobulk (contagens somadas por amostra)")
+        st.dataframe(d[["gene", "log2FoldChange", "padj", "baseMean"]].head(200).round(4),
+                     width="stretch", hide_index=True)
+
+    with tabs[3]:
+        _tab_diferencial()
 
     with tabs[4]:
-        st.dataframe(res.qc, use_container_width=True, hide_index=True)
+        st.dataframe(res.qc, width="stretch", hide_index=True)
 
     with tabs[5]:
-        buf = io.BytesIO()
-        with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
-            for p in (cfg.results_dir / st.session_state.get("input_name", "analise")).glob("*"):
-                zf.write(p, f"resultados/{p.name}")
-            for p in res.figures.values():
-                if Path(p).exists():
-                    zf.write(p, f"figuras/{Path(p).name}")
-        st.download_button("Baixar tabelas e figuras (.zip)", buf.getvalue(), file_name="immunomap_resultados.zip",
-                           mime="application/zip", use_container_width=True)
+        def _zip():
+            buf = io.BytesIO()
+            with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+                for p in (cfg.results_dir / st.session_state.get("input_name", "analise")).glob("*"):
+                    zf.write(p, f"resultados/{p.name}")
+                for p in res.figures.values():
+                    if Path(p).exists():
+                        zf.write(p, f"figuras/{Path(p).name}")
+            return buf.getvalue()
+
+        st.download_button("Baixar tabelas e figuras (.zip)", _cached("zip", _zip), file_name="immunomap_resultados.zip",
+                           mime="application/zip", width="stretch")
         st.caption(f"O objeto completo foi salvo em {cfg.data_dir}/{st.session_state.get('input_name', 'analise')}_resultado.h5ad")

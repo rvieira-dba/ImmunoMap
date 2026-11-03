@@ -55,6 +55,7 @@ class Config:
 
     # Pseudobulk differential expression
     min_cells_pseudobulk: int = 10
+    n_jobs: int = 0  # DESeq2 cell types in parallel; 0 = every core, 1 = one at a time
     reference_condition: str = ""  # empty = first condition alphabetically
 
     def __post_init__(self) -> None:
@@ -63,6 +64,8 @@ class Config:
             raise ValueError(f"integration must be one of {INTEGRATIONS}")
         if self.min_genes_per_cell >= self.max_genes_per_cell:
             raise ValueError("min_genes_per_cell must be lower than max_genes_per_cell")
+        if self.n_jobs < 0:
+            raise ValueError("n_jobs must be >= 0 (0 = every core)")
         if self.n_pcs < 2 or self.n_neighbors < 2 or self.resolution <= 0 or self.annotation_resolution <= 0:
             raise ValueError("n_pcs and n_neighbors must be >= 2; resolution and annotation_resolution > 0")
 

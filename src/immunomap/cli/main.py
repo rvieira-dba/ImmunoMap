@@ -27,6 +27,7 @@ def _config(args) -> Config:
         "resolution": getattr(args, "resolution", None),
         "annotation_resolution": getattr(args, "annotation_resolution", None),
         "random_state": getattr(args, "seed", None),
+        "n_jobs": getattr(args, "jobs", None),
         "data_dir": getattr(args, "data_dir", None),
     }.items() if v is not None}
     return Config.from_mapping({**cfg.__dict__, **over}) if over else cfg
@@ -120,6 +121,8 @@ def build_parser() -> argparse.ArgumentParser:
     r.add_argument("--annotation-resolution", type=float,
                    help="grupos finos usados só para nomear os tipos (padrão 1.5)")
     r.add_argument("--seed", type=int)
+    r.add_argument("--jobs", type=int,
+                   help="tipos celulares do DESeq2 em paralelo (padrão 0 = todos os núcleos; 1 = um de cada vez)")
     r.add_argument("--no-de", action="store_true", help="pula a expressão diferencial")
     r.add_argument("--data-dir", type=Path); r.add_argument("-c", "--config", type=Path)
     r.set_defaults(func=cmd_run)

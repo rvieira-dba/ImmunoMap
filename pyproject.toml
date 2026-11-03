@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "immunomap"
-version = "0.3.0"
+version = "0.3.1"
 description = "Análise reprodutível de scRNA-seq com várias amostras: integração, anotação e expressão diferencial por pseudobulk"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -17,12 +17,13 @@ dependencies = [
     "anndata>=0.10",
     "leidenalg>=0.10",
     "igraph>=0.10",
-    "harmonypy>=0.1,<0.2",   # 0.1.x: NumPy puro (2.x não tem wheel para Windows)
-    "scikit-learn>=1.2",
+    "harmonypy>=0.1,<0.2",     # 0.1.x: NumPy puro (2.x não tem wheel para Windows)
+    "scikit-learn>=1.5",       # PCA com svd_solver="covariance_eigh"
     "pandas>=2.0",
     "matplotlib>=3.7",
     "pydeseq2>=0.4",
-    "streamlit>=1.30",
+    "joblib>=1.4",             # DESeq2 em paralelo (return_as="generator_unordered")
+    "streamlit>=1.50",         # st.fragment, st.logo(size=), width="stretch"
 ]
 
 [project.optional-dependencies]

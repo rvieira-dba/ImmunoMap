@@ -86,7 +86,7 @@ def run(adata: ad.AnnData, cfg: Config, progress: Progress = None, save: bool = 
     multi = adata.obs[cfg.sample_key].nunique() > 1
     metrics: Dict[str, Dict[str, float]] = {}
     if multi and cfg.integration != "none":
-        steps.embed_and_cluster(adata, "X_pca", cfg, progress, umap_key="X_umap_sem_integracao")
+        steps.embed_and_cluster(adata, "X_pca", cfg, progress, umap_key="X_umap_sem_integracao", cluster=False)
 
     rep = steps.integrate(adata, cfg, progress)
     steps.embed_and_cluster(adata, rep, cfg, progress)
