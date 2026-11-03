@@ -2,14 +2,21 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · [SemVer](https://semver.org/).
 
-## [0.2.1] - 2026-11-02
+## [0.3.0] - 2026-11-02
 
 ### Corrigido
-- Saída do terminal sem ruído: some o aviso do scanpy sobre centralizar matriz esparsa (esperado nessa etapa) e os logs com data e hora do harmonypy 0.1.x.
-- Avisos do PyDESeq2 viram uma nota curta em português por tipo celular (por exemplo, quando a curva de dispersão não converge e o DESeq2 usa a média).
+- **Dados brutos com o paciente na coluna de amostra** (caso do arquivo original do Kang 2018, que só tem `replicate` e `label`): uma amostra com duas condições agora é separada em `<amostra>_<condição>`, e o paciente vira o doador, mantendo o desenho pareado. Antes, o pseudobulk somava controle e estimulado no mesmo grupo e a expressão diferencial saía errada sem aviso.
+- Uma coluna que muda de célula para célula (como `nCount_RNA`) é recusada como amostra ou condição, com mensagem explicando o motivo.
+- App: sugere `replicate`/`patient` como coluna da amostra quando não existe uma coluna `sample`.
+- Saída do terminal sem ruído: some o aviso do scanpy sobre centralizar matriz esparsa (esperado nessa etapa) e os logs com data e hora do harmonypy 0.1.x. Avisos do PyDESeq2 viram uma nota curta em português por tipo celular.
+
+### Adicionado
+- Logo (pino de mapa com três grupos de células) no app (cabeçalho e ícone da aba), no README e num banner 1280×640 para a prévia do repositório no GitHub (`docs/assets/immunomap-banner.png`).
+- Volcano destaca sempre os genes de interferon ISG15, IFIT1 e MX1.
+- Figuras de referência do Kang 2018 em `docs/assets/`.
 
 ### Verificado
-- Kang 2018 de ponta a ponta (24.673 células, 16 amostras, scanpy 1.12.5): cerca de 5 minutos com 2 núcleos. Harmony leva a mistura de amostras de 0,61 a 0,79 sem perder a separação de tipos (0,60 → 0,63); os genes de interferon (ISG15, IFIT1, MX1) sobem em todos os tipos, mais nos monócitos CD14+ (2.185 genes diferenciais). Concordância com os rótulos dos autores: 91,1%.
+- Kang 2018 de ponta a ponta pelos dois caminhos, conjunto conhecido e arquivo bruto com as colunas escolhidas: resultados idênticos (24.562 de 24.673 células, 16 amostras, cerca de 4 a 5 minutos com 2 núcleos). O Harmony leva a mistura de amostras de 0,61 a 0,79 sem perder a separação de tipos (0,60 → 0,63). Os genes de interferon sobem em todos os tipos, mais nos monócitos CD14+ (2.185 genes; ISG15 com log2FC 7,8). Concordância com os rótulos dos autores: 91,1%.
 
 ## [0.2.0] - 2026-11-02
 

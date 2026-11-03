@@ -30,17 +30,55 @@ class Result:
     figures: Dict[str, Path] = field(default_factory=dict)
 
 
-def validate_input(adata: ad.AnnData, cfg: Config) -> None:
-    for key in (cfg.sample_key, cfg.condition_key):
-        if key not in adata.obs:
+def normalise_design(obs: pd.DataFrame, cfg: Config) -> Optional[str]:
+    """
+    Make ``obs`` describe one sample per (sample, condition), in place.
+
+    * a missing donor column becomes the sample column;
+    * a column that changes from cell to cell (``nCount_RNA``, a barcode…) is refused as sample or condition;
+    * a sample seen in more than one condition — typical when the "sample" column is the patient,
+      as in the raw Kang 2018 file — is split into ``<sample>_<condition>``, and the original value
+      becomes the donor so the design stays paired.
+
+    Returns a note for the user when samples were split, otherwise ``None``.
+    """
+    s, c, d = cfg.sample_key, cfg.condition_key, cfg.donor_key
+    for key in (s, c):
+        if key not in obs:
             raise ValueError(f"Coluna obrigatória ausente em obs: '{key}'.")
-    if cfg.donor_key not in adata.obs:
-        adata.obs[cfg.donor_key] = adata.obs[cfg.sample_key]
+    n = len(obs)
+    for key, what, limit in ((s, "amostra", max(50, n // 5)), (c, "condição", 20)):
+        k = obs[key].nunique()
+        if k > limit:
+            raise ValueError(
+                f"A coluna usada como {what} tem {k:,} valores diferentes para {n:,} células: parece uma medida "
+                f"por célula, não o nome da {what}. Escolha a coluna que identifica a {what} "
+                f"(ex.: paciente, ctrl/stim).".replace(",", "."))
+    if d not in obs:
+        obs[d] = obs[s]
+    per_sample = obs.groupby(obs[s].astype(str), observed=True)[c].nunique()
+    mixed = per_sample[per_sample > 1]
+    if mixed.empty:
+        return None
+    donor_was_sample = (obs[d].astype(str) == obs[s].astype(str)).all()
+    original = obs[s].astype(str)
+    before = original.nunique()
+    obs[s] = pd.Categorical(original + "_" + obs[c].astype(str))
+    if donor_was_sample:
+        obs[d] = pd.Categorical(original)
+    return (f"{len(mixed)} de {before} amostras tinham mais de uma condição; separei cada uma por condição "
+            f"({before} → {obs[s].nunique()} amostras)" + (" e usei o valor original como doador." if donor_was_sample else "."))
+
+
+def validate_input(adata: ad.AnnData, cfg: Config, progress: Progress = None) -> None:
+    note = normalise_design(adata.obs, cfg)
+    if note and progress:
+        progress(note)
 
 
 def run(adata: ad.AnnData, cfg: Config, progress: Progress = None, save: bool = True,
         compute_de: bool = True, name: str = "analise") -> Result:
-    validate_input(adata, cfg)
+    validate_input(adata, cfg, progress)
     adata, qc = steps.quality_control(adata, cfg, progress)
     adata = steps.normalise_and_reduce(adata, cfg, progress)
 

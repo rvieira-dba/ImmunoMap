@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "immunomap"
-version = "0.2.1"
+version = "0.3.0"
 description = "Análise reprodutível de scRNA-seq com várias amostras: integração, anotação e expressão diferencial por pseudobulk"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -35,6 +35,9 @@ immunomap = "immunomap.cli.main:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+immunomap = ["app/assets/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

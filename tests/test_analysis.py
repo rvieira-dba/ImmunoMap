@@ -68,3 +68,26 @@ def test_annotation_resolution_must_be_positive(tmp_path):
 
     with pytest.raises(ValueError):
         _cfg(tmp_path, annotation_resolution=0)
+
+
+def test_sample_column_with_two_conditions_is_split(toy_counts, tmp_path):
+    from immunomap.pipeline import normalise_design
+
+    a = toy_counts.copy()
+    a.obs["sample"] = a.obs["donor"].astype(str)  # "sample" = patient, as in the raw Kang file
+    del a.obs["donor"]
+    note = normalise_design(a.obs, _cfg(tmp_path))
+    assert note and "separei" in note
+    assert a.obs["sample"].nunique() == 6
+    assert (a.obs.groupby("sample", observed=True)["condition"].nunique() == 1).all()
+    assert a.obs["donor"].nunique() == 3  # the patient becomes the donor: paired design kept
+
+
+def test_per_cell_column_refused_as_sample(toy_counts, tmp_path):
+    import pytest
+    from immunomap.pipeline import normalise_design
+
+    a = toy_counts.copy()
+    a.obs["sample"] = [f"c{i}" for i in range(a.n_obs)]  # e.g. a barcode or nCount_RNA
+    with pytest.raises(ValueError, match="medida"):
+        normalise_design(a.obs, _cfg(tmp_path))

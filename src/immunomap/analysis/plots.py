@@ -54,14 +54,27 @@ def composition_bars(comp: pd.DataFrame, condition_key: str, path: Optional[Path
     return _save(fig, path)
 
 
-def volcano(de: pd.DataFrame, cell_type: str, path: Optional[Path] = None, top: int = 10):
+# Classic interferon-stimulated genes: always labelled when present, so the response is easy to find.
+HIGHLIGHT_GENES = ("ISG15", "IFIT1", "MX1")
+
+
+def volcano(de: pd.DataFrame, cell_type: str, path: Optional[Path] = None, top: int = 8,
+            highlight=HIGHLIGHT_GENES):
     d = de[de["cell_type"] == cell_type].dropna(subset=["padj", "log2FoldChange"])
     fig, ax = plt.subplots(figsize=(5.4, 4.4))
     y = -np.log10(d["padj"].clip(lower=1e-300))
     sig = (d["padj"] < 0.05) & (d["log2FoldChange"].abs() > 1)
     ax.scatter(d["log2FoldChange"], y, s=6, c=np.where(sig, "#c2477a", "#9aa4ae"), linewidths=0)
-    for _, r in d[sig].nsmallest(top, "padj").iterrows():
-        ax.annotate(r["gene"], (r["log2FoldChange"], -np.log10(max(r["padj"], 1e-300))), fontsize=7)
+    hl = d[d["gene"].isin(highlight)]
+    for _, r in d[sig & ~d["gene"].isin(highlight)].nsmallest(top, "padj").iterrows():
+        ax.annotate(r["gene"], (r["log2FoldChange"], -np.log10(max(r["padj"], 1e-300))), fontsize=7,
+                    xytext=(3, 2), textcoords="offset points")
+    if not hl.empty:  # interferon genes: dark dot and bold label
+        ax.scatter(hl["log2FoldChange"], -np.log10(hl["padj"].clip(lower=1e-300)), s=22, c="#0b5450",
+                   edgecolors="white", linewidths=0.6, zorder=3)
+        for _, r in hl.iterrows():
+            ax.annotate(r["gene"], (r["log2FoldChange"], -np.log10(max(r["padj"], 1e-300))), fontsize=8,
+                        fontweight="bold", color="#0b5450", xytext=(4, -10), textcoords="offset points", zorder=4)
     ax.axhline(-np.log10(0.05), ls="--", lw=0.8, c="#666")
     ax.axvline(-1, ls=":", lw=0.8, c="#666"); ax.axvline(1, ls=":", lw=0.8, c="#666")
     ax.set_xlabel("log2 fold change"); ax.set_ylabel("-log10(p ajustado)")

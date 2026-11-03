@@ -25,9 +25,12 @@ from immunomap.analysis import plots  # noqa: E402
 from immunomap.config import INTEGRATIONS, Config  # noqa: E402
 from immunomap.datasets import REGISTRY, load_dataset  # noqa: E402
 from immunomap.io import Sample, combine_samples, read_counts  # noqa: E402
-from immunomap.pipeline import run  # noqa: E402
+from immunomap.pipeline import normalise_design, run  # noqa: E402
 
-st.set_page_config(page_title="ImmunoMap", layout="centered", initial_sidebar_state="collapsed")
+ASSETS = Path(__file__).resolve().parent / "assets"
+st.set_page_config(page_title="ImmunoMap", page_icon=str(ASSETS / "logo.png"), layout="centered",
+                   initial_sidebar_state="collapsed")
+st.logo(str(ASSETS / "logo.png"), size="large")
 st.markdown(
     """<style>
     .block-container {padding-top: 1.2rem; padding-bottom: 3rem; max-width: 760px;}
@@ -130,7 +133,11 @@ else:
                         return low.index(n)
                 return fallback
 
-            sample_col = st.selectbox("Coluna da amostra", cols, index=_guess(cols, ["sample", "amostra", "sample_id", "orig.ident"]))
+            sample_col = st.selectbox("Coluna da amostra", cols,
+                                      index=_guess(cols, ["sample", "amostra", "sample_id", "orig.ident", "replicate",
+                                                          "patient", "paciente", "donor", "doador", "ind"]),
+                                      help="A que identifica cada amostra. Se for o paciente, e cada paciente aparecer "
+                                           "nas duas condições, o ImmunoMap separa por condição sozinho.")
             condition_col = st.selectbox("Coluna da condição", cols,
                                          index=_guess(cols, ["condition", "condicao", "label", "stim", "group", "grupo"], min(1, len(cols) - 1)))
             donor_opts = ["(nenhuma)"] + cols
@@ -143,6 +150,9 @@ else:
                     a.obs["sample"] = a.obs[sample_col].astype(str).astype("category")
                     a.obs["condition"] = a.obs[condition_col].astype(str).astype("category")
                     a.obs["donor"] = (a.obs[donor_col] if donor_col != "(nenhuma)" else a.obs["sample"]).astype(str).astype("category")
+                    note = normalise_design(a.obs, Config())
+                    if note:
+                        st.info(note)
                     st.session_state["input"], st.session_state["input_name"] = a, Path(f.name).stem
                 except Exception as exc:  # noqa: BLE001
                     st.error(str(exc))

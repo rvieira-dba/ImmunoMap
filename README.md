@@ -1,3 +1,15 @@
+<p align="center">
+  <img src="docs/assets/immunomap-banner.png" alt="ImmunoMap: scRNA-seq com várias amostras" width="820">
+</p>
+
+<p align="center">
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/vers%C3%A3o-0.3.0-0f6e6a.svg" alt="versão 0.3.0"></a>
+  <img src="https://img.shields.io/badge/Python-3.10%2B-3776AB.svg?logo=python&logoColor=white" alt="Python 3.10+">
+  <img src="https://img.shields.io/badge/testes-18-2ea44f.svg" alt="18 testes">
+  <img src="https://img.shields.io/badge/app-Streamlit-ff4b4b.svg?logo=streamlit&logoColor=white" alt="app Streamlit">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/licen%C3%A7a-MIT-green.svg" alt="licença MIT"></a>
+</p>
+
 # ImmunoMap
 
 **scRNA-seq com várias amostras: do arquivo bruto à resposta de cada tipo celular.**
@@ -9,8 +21,32 @@ arquivos (.h5ad · .h5 · .mtx · .csv) ──► QC por amostra ──► norma
    └─ ou conjunto conhecido                                                                              │
                                                      Harmony (integração) ◄──────────────────────────────┘
                                                             │
-                                   Leiden + UMAP ──► anotação por marcadores ──► pseudobulk ──► DESeq2
+                         Leiden + UMAP ──► anotação em grupos finos ──► pseudobulk ──► DESeq2 pareado
 ```
+
+## Resultado de referência: Kang 2018
+
+PBMC de 8 pacientes com lúpus, cada um em controle e estimulado com interferon-β por 6 horas: 16 amostras ([Kang et al., 2018](https://doi.org/10.1038/nbt.4042)). Um comando: `immunomap run --dataset kang2018`.
+
+<p align="center">
+  <img src="docs/assets/kang_integracao.png" alt="UMAP antes e depois da integração com Harmony, colorido por condição e por tipo celular" width="900">
+</p>
+
+| Indicador | Valor |
+| --- | --- |
+| Células após o controle de qualidade | 24.562 de 24.673, em 16 amostras |
+| Mistura de amostras (sem integração → Harmony) | 0,61 → 0,79 |
+| Separação de tipos (sem integração → Harmony) | 0,60 → 0,63 |
+| Genes diferenciais nos monócitos CD14+ (padj < 0,05, \|log2FC\| > 1) | 2.185, o tipo que mais responde |
+| ISG15 nos monócitos CD14+ | log2FC 7,8, cerca de 220 vezes mais expresso |
+| Concordância com os rótulos dos autores | 91,1% |
+| Tempo (2 núcleos de CPU) | cerca de 4 a 5 minutos |
+
+<p align="center">
+  <img src="docs/assets/kang_volcano_monocitos.png" alt="Volcano dos monócitos CD14+: ISG15, MX1 e IFIT1 destacados no alto à direita" width="520">
+</p>
+
+Antes da integração, controle e estimulado formam ilhas separadas. Depois do Harmony, as células de mesmo tipo se juntam e a anotação fica comparável entre condições. A estatística, por sua vez, usa as **contagens brutas** por amostra, então o efeito do interferon não é apagado pela integração. Ele aparece no volcano: os genes estimulados por interferon (ISG15, MX1, IFIT1) sobem em todos os tipos celulares.
 
 ---
 
@@ -41,11 +77,8 @@ Para descobrir o IP do PC, rode `ipconfig` e use o "Endereço IPv4". Na primeira
 
 O app tem quatro passos, numa coluna só:
 
-1. **Dados.** Três formas de entrada:
-   - **conjunto conhecido** (baixado e guardado em `dados/` no primeiro uso);
-   - **arquivos enviados** (um por amostra; você informa amostra, condição e doador numa tabela);
-   - **`.h5ad` já combinado** (você escolhe as colunas de amostra, condição e doador).
-2. **Parâmetros:** integração, resolução, QC e semente.
+1. **Dados:** conjunto conhecido, arquivos enviados ou `.h5ad` já combinado (veja [Dados de entrada](#dados-de-entrada)).
+2. **Parâmetros:** os principais estão na [tabela abaixo](#parâmetros).
 3. **Rodar.**
 4. **Resultados:**
    - Resumo e métricas de integração;
@@ -62,11 +95,21 @@ immunomap datasets                          # lista os conjuntos conhecidos
 immunomap download kang2018                 # baixa e padroniza
 immunomap run --dataset kang2018            # análise completa
 immunomap run --samples amostras.csv        # seus arquivos, descritos numa planilha
-immunomap run --input meus.h5ad --sample-col paciente --condition-col grupo --donor-col paciente
+immunomap run --input dados\brutos\kang_2018.h5ad --sample-col replicate --condition-col label --donor-col replicate
 immunomap run --dataset pbmc_v2_v3 --integration none   # ver o efeito de lote sem correção
 immunomap run --dataset pbmc3k --annotation-resolution 0.6 --seed 1   # ver o erro T CD8 → NK
 python benchmarks/anotacao_pbmc3k.py                   # sementes × resolução da anotação
 ```
+
+## Dados de entrada
+
+Três formas, no app e na linha de comando:
+
+| Forma | Quando usar | Na linha de comando |
+| --- | --- | --- |
+| **Conjunto conhecido** | Kang 2018, PBMC3k ou PBMC v2 × v3; baixado e guardado em `dados/` no primeiro uso | `--dataset kang2018` |
+| **Um arquivo por amostra** | Saídas da 10x ou tabelas, descritas numa planilha | `--samples amostras.csv` |
+| **`.h5ad` já combinado** | Todas as amostras num arquivo; você escolhe as colunas de amostra, condição e doador | `--input arquivo.h5ad --sample-col … --condition-col … --donor-col …` |
 
 Formato da planilha ([`amostras.example.csv`](amostras.example.csv)):
 
@@ -78,7 +121,29 @@ Formato da planilha ([`amostras.example.csv`](amostras.example.csv)):
 | `donor` | não | `P1`. Mesmo doador em duas condições ⇒ análise **pareada** |
 | `format` | não | `auto`, `h5ad`, `10x-h5`, `10x-mtx`, `csv`, `tsv` |
 
-O ImmunoMap exige **contagens brutas** (números inteiros). Dados já normalizados são recusados com uma mensagem explicando o motivo.
+Regras que protegem a análise:
+
+- **Contagens brutas** (números inteiros) são obrigatórias. Dados já normalizados são recusados com uma mensagem explicando o motivo.
+- **Uma condição por amostra.** Se a coluna escolhida como amostra for o paciente e ele aparecer nas duas condições (como no arquivo original do Kang, que só tem `replicate` e `label`), cada amostra é separada em `<paciente>_<condição>` e o paciente vira o doador. O app e o terminal avisam: "8 → 16 amostras".
+- **Coluna de amostra precisa ser um nome, não uma medida.** Uma coluna que muda de célula para célula (`nCount_RNA`, código de barras) é recusada.
+
+## Parâmetros
+
+| No app | CLI / TOML | Padrão | O que faz |
+| --- | --- | --- | --- |
+| Colunas da amostra, condição e doador | `--sample-col`, `--condition-col`, `--donor-col` | sugeridas pelos nomes | Definem o desenho: o teste compara amostras, e o doador liga o antes e o depois do mesmo paciente |
+| Integração entre amostras | `--integration` / `integration` | `harmony` | Alinha as amostras no PCA para o mesmo tipo celular ficar junto. `none` mostra o efeito de lote |
+| Resolução do Leiden | `--resolution` / `resolution` | 0,6 | Zoom dos grupos mostrados no mapa |
+| Resolução da anotação | `--annotation-resolution` / `annotation_resolution` | 1,5 | Grupos mais finos, usados só para dar nome aos tipos |
+| Componentes principais | `n_pcs` | 30 | Dimensões que resumem os 2.000 genes mais variáveis |
+| Mínimo e máximo de genes por célula | `min_genes_per_cell`, `max_genes_per_cell` | 200 e 6.000 | Tiram células vazias ou provavelmente duplas |
+| Máximo de % mitocondrial | `max_mito_percent` | 15 | Tira células morrendo; só vale se o arquivo tiver genes `MT-` (o Kang não tem) |
+| Semente | `--seed` / `random_state` | 0 | Mesmo resultado a cada execução |
+| Expressão diferencial | `--no-de` desliga | ligada | Pseudobulk + DESeq2; precisa de pelo menos 2 amostras por condição em cada tipo |
+| — | `min_cells_pseudobulk` | 10 | Mínimo de células para um grupo amostra × tipo entrar na estatística |
+| — | `reference_condition` | primeira em ordem alfabética | Condição de referência do log2FC (no Kang, `ctrl`) |
+
+Os mesmos parâmetros vão num arquivo: `immunomap run --dataset kang2018 --config immunomap.example.toml`.
 
 ## Conjuntos conhecidos
 
@@ -124,10 +189,17 @@ Para cada análise `<nome>`:
 - **Harmony** como padrão: rápido, roda na CPU e corrige o PCA sem mexer nas contagens. As métricas antes/depois mostram se ajudou.
 - **Pseudobulk + DESeq2**: o teste compara **amostras**, não células. Assim, mil células de um paciente contam como um paciente, e não como mil réplicas. O desenho fica pareado (`~donor + condition`) quando cada doador aparece nas duas condições.
 
+## Limitações conhecidas
+
+- **Anotação por marcadores clássicos.** No Kang 2018 ela concorda 91,1% com os rótulos dos autores. As diferenças estão onde a biologia é parecida (parte das T CD8 vira NK, porque as duas são citotóxicas) e entre monócitos e células dendríticas.
+- **Grupo com RNA de plaquetas.** 452 células recebem o nome "Platelets": 85% delas expressam PPBP, mas os autores as chamam de T ou monócitos. São, provavelmente, plaquetas grudadas em leucócitos, um artefato comum em amostras de sangue. Detecção de dupletos é o próximo passo.
+- **"Unassigned".** Cerca de 3% das células ficam sem nome quando nenhum conjunto de marcadores se destaca no grupo. É uma escolha conservadora.
+- **scVI** está disponível como opção, mas ainda não foi validado com dados reais.
+
 ## Desenvolvimento
 
 ```powershell
-pytest        # 16 testes: leitores, planilha, pseudobulk, métricas, pipeline ponta a ponta, CLI
+pytest        # 18 testes: leitores, planilha, desenho das amostras, pseudobulk, métricas, pipeline ponta a ponta, CLI
 ```
 
 ## Referências
@@ -144,4 +216,4 @@ Material de estudo comentado, com versões em português: [`docs/MATERIAL.md`](d
 
 ---
 
-MIT · Rubens Lyra
+<p align="center"><img src="src/immunomap/app/assets/logo.svg" alt="" width="40"><br>MIT · Rubens Lyra</p>
