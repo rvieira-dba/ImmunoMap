@@ -4,24 +4,25 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "immunomap"
-version = "0.3.1"
+version = "0.3.2"
 description = "Análise reprodutível de scRNA-seq com várias amostras: integração, anotação e expressão diferencial por pseudobulk"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12"     # 3.10 saiu de suporte em 2026-10 (PEP 619). No 3.11 o scanpy para na 1.11.5 e o anndata na 0.12.19: ver docs/VERSOES.md
 license = "MIT"
 license-files = ["LICENSE"]
 authors = [{name = "Rubens Lyra"}]
 keywords = ["scRNA-seq", "single-cell", "batch-correction", "harmony", "pseudobulk", "scanpy"]
 dependencies = [
-    "scanpy>=1.10",
-    "anndata>=0.10",
+    # Cada piso diz por que existe; a prova de cada um está em docs/VERSOES.md.
+    "scanpy>=1.12",            # a 1.11.5 chama Colormap.set_bad, depreciado no matplotlib 3.11 (a trava de testes falha); covariance_eigh existe desde a 1.11
+    "anndata>=0.11",           # mesmo piso do pydeseq2 0.5.4
     "leidenalg>=0.10",
     "igraph>=0.10",
-    "harmonypy>=0.1,<0.2",     # 0.1.x: NumPy puro (2.x não tem wheel para Windows)
-    "scikit-learn>=1.5",       # PCA com svd_solver="covariance_eigh"
-    "pandas>=2.0",
-    "matplotlib>=3.7",
-    "pydeseq2>=0.4",
+    "harmonypy>=0.1,<0.2",     # 0.1.x: só NumPy. A 0.2.0 exige PyTorch e a 2.x não tem wheel para Windows
+    "scikit-learn>=1.5",       # com versões anteriores o scanpy troca covariance_eigh por arpack e avisa
+    "pandas>=2.3,<3.1",        # piso do scanpy 1.12 e do anndata 0.13. Teto: com o pandas 3.1.0 o anndata 0.13.4 emite Pandas4Warning (2 opções depreciadas); tirar quando o anndata corrigir
+    "matplotlib>=3.9",         # mesmo piso do pydeseq2 0.5.4
+    "pydeseq2>=0.5.4",         # 0.5.2 e 0.5.3 quebram no pandas 3 (TypeError); antes da 0.5.0 não existe design=
     "joblib>=1.4",             # DESeq2 em paralelo (return_as="generator_unordered")
     "streamlit>=1.50",         # st.fragment, st.logo(size=), width="stretch"
 ]
@@ -44,3 +45,10 @@ immunomap = ["app/assets/*"]
 testpaths = ["tests"]
 pythonpath = ["src"]
 addopts = "-ra"
+# Depreciação não cabe aqui: qualquer aviso de depreciação, de qualquer biblioteca, derruba o teste.
+# O que for esperado entra na lista abaixo, com o motivo e a versão em que deve sair.
+filterwarnings = [
+    "error::DeprecationWarning",
+    "error::PendingDeprecationWarning",
+    "error::FutureWarning",
+]

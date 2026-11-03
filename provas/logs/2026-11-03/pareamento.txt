@@ -1,0 +1,4 @@
+CD14+ Monocytes: 16 pseudobulks (8 doadores), 9504 genes com pelo menos 10 contagens
+pareado     ~donor + condition  24.2 s · genes testados 8214 · padj<0,05 e |log2FC|>1: 2185 · mediana do erro padrão do log2FC 0.447 · ISG15 log2FC 7.76 (padj 3.2e-88)
+não pareado ~condition          21.7 s · genes testados 8398 · padj<0,05 e |log2FC|>1: 2277 · mediana do erro padrão do log2FC 0.434 · ISG15 log2FC 7.27 (padj 8.2e-56)
+só no pareado: 35 · só no não pareado: 127 · nos dois: 2150

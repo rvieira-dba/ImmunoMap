@@ -1,0 +1,26 @@
+importar bibliotecas                          9.9 s
+ler o .h5ad (24.673 células)                  5.0 s
+controle de qualidade                         0.7 s
+normalização + genes variáveis + PCA         21.7 s
+vizinhos (antes)                             30.2 s
+UMAP (antes) — 1ª vez, inclui compilação     15.1 s
+Leiden (antes, descartado)                    1.2 s
+Harmony                                      15.0 s
+vizinhos (depois)                             0.9 s
+UMAP (depois) — já compilado                 14.1 s
+Leiden do mapa                                0.7 s
+Leiden fino (anotação)                        0.8 s
+anotação por marcadores                       0.6 s
+métricas de integração (2×)                   1.8 s
+composição + pseudobulk                       0.4 s
+   DESeq2 B cells (pareado)                  22.8 s
+   DESeq2 CD14+ Monocytes (pareado)          24.6 s
+   DESeq2 Dendritic cells (pareado)          19.5 s
+   DESeq2 FCGR3A+ Monocytes (pareado)        19.0 s
+   DESeq2 NK cells (pareado)                 20.1 s
+   DESeq2 Platelets (não pareado)            11.7 s
+   DESeq2 T cells (pareado)                  29.0 s
+expressão diferencial (DESeq2, 7 tipos)     146.7 s
+gravar tabelas, figuras e .h5ad               3.5 s
+   dos quais gravar o .h5ad 0.4 s (365 MB)
+TOTAL                                       268.2 s

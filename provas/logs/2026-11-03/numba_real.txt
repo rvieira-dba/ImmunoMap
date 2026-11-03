@@ -1,0 +1,8 @@
+PCA real do Kang 2018; NUMBA_CACHE_DIR em pasta vazia = 'a frio', segunda execução na mesma pasta = 'com cache'. 2 núcleos, nada mais rodando.
+--- Python 3.14.6
+python 3.14.6 | 24562 células, X_pca float32 | importar 1.7 s | vizinhos 107.0 s | umap 15.3 s
+python 3.14.6 | 24562 células, X_pca float32 | importar 1.8 s | vizinhos 29.8 s | umap 15.1 s
+--- Python 3.13.18
+python 3.13.18 | 24562 células, X_pca float32 | importar 1.7 s | vizinhos 105.9 s | umap 15.3 s
+python 3.13.18 | 24562 células, X_pca float32 | importar 1.8 s | vizinhos 29.5 s | umap 14.5 s
+fim

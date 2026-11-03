@@ -1,0 +1,12 @@
+consulta em 2026-11-03 (UTC) · fonte: pypi.org
+
+versão   data        wheels p/ Windows  tipos de arquivo             exige torch?
+0.1.0    2026-01-09  sim                código-fonte, wheel pura     não
+0.2.0    2026-01-09  sim                código-fonte, wheel pura     SIM
+2.0.0    2026-04-26  NÃO                código-fonte, wheel compilada não
+2.0.2    2026-09-16  NÃO                código-fonte, wheel compilada não
+2.1.0    2026-10-06  NÃO                código-fonte, wheel compilada não
+
+torch 2.15.0: tamanho do pacote por plataforma (Python 3.13)
+  torch-2.15.0-cp313-cp313-manylinux_2_28_x86_64.whl  539 MB
+  torch-2.15.0-cp313-cp313-win_amd64.whl  127 MB

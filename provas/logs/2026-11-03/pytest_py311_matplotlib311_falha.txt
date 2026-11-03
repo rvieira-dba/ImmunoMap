@@ -1,0 +1,36 @@
+=== Python 3.11, matplotlib 3.11.2 (instalado à parte com PYTHONPATH), só o teste que falha, traceback curto (--tb=short)
+matplotlib 3.11.2 | scanpy 1.11.5 | pandas 2.3.3 | anndata 0.12.19
+F
+=================================== FAILURES ===================================
+___________________ test_end_to_end_recovers_stimulated_gene ___________________
+tests/test_analysis.py:48: in test_end_to_end_recovers_stimulated_gene
+    res = run(toy_counts.copy(), _cfg(tmp_path, resolution=0.3), save=True, name="toy")
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/immunomap/pipeline.py:108: in run
+    _save_outputs(res, cfg, name, progress)
+src/immunomap/pipeline.py:133: in _save_outputs
+    plt.close(plots.umap_panels(a, colors[:2], basis="umapsem", title="Antes da integração", path=res.figures["umap_sem_integracao"]))
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/immunomap/analysis/plots.py:29: in umap_panels
+    sc.pl.embedding(adata, basis=basis, color=color, ax=ax, show=False, frameon=False,
+../venv/lib/python3.11/site-packages/scanpy/plotting/_tools/scatterplots.py:184: in embedding
+    cmap.set_bad(na_color)
+../../mpl311/matplotlib/_api/deprecation.py:191: in emit_warning
+    warn_deprecated(
+../../mpl311/matplotlib/_api/deprecation.py:94: in warn_deprecated
+    warn_external(warning, category=MatplotlibDeprecationWarning)
+../../mpl311/matplotlib/_api/__init__.py:494: in warn_external
+    warnings.warn(message, category, **kwargs)
+E   PendingDeprecationWarning: The set_bad function will be deprecated in a future version. Use cmap.with_extremes(bad=...) or Colormap(bad=...) instead.
+=============================== warnings summary ===============================
+tests/test_analysis.py::test_end_to_end_recovers_stimulated_gene
+tests/test_analysis.py::test_end_to_end_recovers_stimulated_gene
+
+tests/test_analysis.py::test_end_to_end_recovers_stimulated_gene
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_analysis.py::test_end_to_end_recovers_stimulated_gene - Pen...
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!
+1 failed, 3 warnings in 12.86s
+rc=1

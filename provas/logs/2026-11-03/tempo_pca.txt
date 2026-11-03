@@ -1,0 +1,6 @@
+default solver: ? | X: ndarray float64
+arpack            11.8 s
+covariance_eigh    3.6 s
+randomized         3.0 s
+covariance_eigh  máx. dif. (após alinhar sinais) por componente: até 1.46e-11 | sinais trocados: 0 | var. explicada dif. 5.6e-17
+randomized       máx. dif. (após alinhar sinais) por componente: até 1.12e+01 | sinais trocados: 4 | var. explicada dif. 8.5e-05

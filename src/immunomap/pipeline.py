@@ -13,6 +13,7 @@ import pandas as pd
 from .analysis import plots, steps
 from .config import Config
 from .io.write import write_h5ad
+from .versions import environment_report
 
 Progress = Optional[Callable[[str], None]]
 
@@ -122,6 +123,7 @@ def _save_outputs(res: Result, cfg: Config, name: str, progress: Progress) -> No
         res.de.to_csv(out / "expressao_diferencial.csv", index=False)
     (out / "metricas_integracao.json").write_text(json.dumps(res.metrics, indent=2, ensure_ascii=False), encoding="utf-8")
     (out / "parametros.json").write_text(json.dumps(cfg.to_dict(), indent=2, ensure_ascii=False), encoding="utf-8")
+    (out / "versoes.json").write_text(json.dumps(environment_report(), indent=2, ensure_ascii=False), encoding="utf-8")
 
     a = res.adata
     colors = [cfg.sample_key, cfg.condition_key, "cell_type"]

@@ -1,0 +1,29 @@
+=== base
+python 3.13.18 | pandas 3.0.5 | pydeseq2 0.5.4 | anndata 0.13.4 | numpy 2.5.3
+DE ok: 400 linhas
+DESeq2 direto ok
+   1× UserWarning em pydeseq2/dds.py:822 — The dispersion trend curve fitting did not converge. Switching to a me
+   1× UserWarning em pydeseq2/dds.py:548 — As the residual degrees of freedom is less than 3, the distribution of
+=== pd052
+python 3.13.18 | pandas 3.0.5 | pydeseq2 0.5.2 | anndata 0.13.4 | numpy 2.5.3
+DE FALHOU: TypeError Invalid value '[ True  True  True  True  True  True  True  True  True  True  True  True
+  True  True  True  True  True  True  True  True  True  True  True  True
+  True  True  True  True  True  True  T
+DESeq2 direto FALHOU: TypeError Invalid value '[ True  True  True  True  True  True  True  True  True  True  True  True
+  True  True  True  True  True  True  True  True  True  True  True  True
+  True  True  True  True  True  True  True  True  True  True  True  True
+  True  True  True  True  True  True  True  True  True  True  True
+   em pandas/core/internals/blocks.py linha 468 → raise TypeError(f"Invalid value '{other}' for dtype '{self.values.dtype}'")
+=== pd053
+python 3.13.18 | pandas 3.0.5 | pydeseq2 0.5.3 | anndata 0.13.4 | numpy 2.5.3
+DE FALHOU: TypeError Invalid value '[ True  True  True  True  True  True  True  True  True  True  True  True
+  True  True  True  True  True  True  True  True  True  True  True  True
+  True  True  True  True  True  True  T
+DESeq2 direto FALHOU: TypeError Invalid value '[ True  True  True  True  True  True  True  True  True  True  True  True
+  True  True  True  True  True  True  True  True  True  True  True  True
+  True  True  True  True  True  True  True  True  True  True  True  True
+  True  True  True  True  True  True  True  True  True  True  True
+   em pandas/core/internals/blocks.py linha 468 → raise TypeError(f"Invalid value '{other}' for dtype '{self.values.dtype}'")
+=== harmonypy 0.2.0 (sobreposição) — import
+    import torch
+ModuleNotFoundError: No module named 'torch'

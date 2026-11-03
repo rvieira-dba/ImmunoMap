@@ -1,0 +1,9 @@
+CD14+ Monocytes: 2457 células de controle em 8 amostras (97 a 705 células por amostra)
+divisão  amostras do grupo A                     célula a célula: padj<0,05 | e |log2FC|>1    pseudobulk DESeq2: padj<0,05 | e |log2FC|>1
+1        1015, 101, 1256, 1488                                 133 | 9                                          0 | 0                    
+2        1015, 101, 1039, 107                                  118 | 3                                          0 | 0                    
+3        1015, 107, 1244, 1256                                  99 | 9                                          0 | 0                    
+4        1015, 1016, 1256, 1488                                183 | 22                                        20 | 18                   
+5        1015, 1016, 1039, 107                                  78 | 15                                         0 | 0                    
+6        1015, 1016, 101, 107                                   85 | 13                                         0 | 0                    
+média de falsos positivos com |log2FC|>1: célula a célula 12 · pseudobulk 3.0  (genes testados: 8436)

@@ -3,9 +3,9 @@
 </p>
 
 <p align="center">
-  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/vers%C3%A3o-0.3.1-0f6e6a.svg" alt="versão 0.3.1"></a>
-  <img src="https://img.shields.io/badge/Python-3.10%2B-3776AB.svg?logo=python&logoColor=white" alt="Python 3.10+">
-  <img src="https://img.shields.io/badge/testes-21-2ea44f.svg" alt="21 testes">
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/vers%C3%A3o-0.3.2-0f6e6a.svg" alt="versão 0.3.2"></a>
+  <img src="https://img.shields.io/badge/Python-3.12%2B-3776AB.svg?logo=python&logoColor=white" alt="Python 3.12+">
+  <img src="https://img.shields.io/badge/testes-28-2ea44f.svg" alt="28 testes">
   <img src="https://img.shields.io/badge/app-Streamlit-ff4b4b.svg?logo=streamlit&logoColor=white" alt="app Streamlit">
   <a href="LICENSE"><img src="https://img.shields.io/badge/licen%C3%A7a-MIT-green.svg" alt="licença MIT"></a>
 </p>
@@ -40,7 +40,7 @@ PBMC de 8 pacientes com lúpus, cada um em controle e estimulado com interferon-
 | Genes diferenciais nos monócitos CD14+ (padj < 0,05, \|log2FC\| > 1) | 2.185, o tipo que mais responde |
 | ISG15 nos monócitos CD14+ | log2FC 7,8, cerca de 220 vezes mais expresso |
 | Concordância com os rótulos dos autores | 91,1% |
-| Tempo (2 núcleos de CPU) | cerca de 3,5 minutos na linha de comando e 3 no app ([onde vai o tempo](#onde-vai-o-tempo)) |
+| Tempo (2 núcleos de CPU) | 191 s (cerca de 3 minutos) na linha de comando; 266 s com `--jobs 1` ([onde vai o tempo](#onde-vai-o-tempo)) |
 
 <p align="center">
   <img src="docs/assets/kang_volcano_monocitos.png" alt="Volcano dos monócitos CD14+: ISG15, MX1 e IFIT1 destacados no alto à direita" width="520">
@@ -62,7 +62,9 @@ pytest                      # confere a instalação
 pip install -e ".[scvi]"    # integração com scVI (instala PyTorch, ~2 GB)
 ```
 
-Requer Python ≥ 3.10. As dependências foram conferidas para Windows com Python 3.14: todas têm pacote pronto (wheel), então nada precisa de compilador.
+Requer Python ≥ 3.12. O 3.10 saiu de suporte em outubro de 2026 e, no 3.11, o pip entrega o scanpy 1.11.5, cujo gráfico chama uma função que o matplotlib 3.11 marcou como depreciada (os testes falham por isso). As dependências foram conferidas para Windows com Python 3.14: todas têm pacote pronto (wheel), então nada precisa de compilador.
+
+**Versões:** o projeto usa as bibliotecas mais novas que foram testadas, e depreciação derruba os testes. Cada versão mínima tem um motivo e uma prova em [`docs/VERSOES.md`](docs/VERSOES.md), que também mostra quem ainda usa as versões anteriores e por quê.
 
 ## Uso
 
@@ -139,7 +141,7 @@ Regras que protegem a análise:
 | Mínimo e máximo de genes por célula | `min_genes_per_cell`, `max_genes_per_cell` | 200 e 6.000 | Tiram células vazias ou provavelmente duplas |
 | Máximo de % mitocondrial | `max_mito_percent` | 15 | Tira células morrendo; só vale se o arquivo tiver genes `MT-` (o Kang não tem) |
 | Semente | `--seed` / `random_state` | 0 | Mesmo resultado a cada execução |
-| — | `--jobs` / `n_jobs` | 0 (todos os núcleos) | Quantos tipos celulares o DESeq2 analisa ao mesmo tempo. Cada processo usa cerca de 300 MB de memória; use 1 ou 2 se o computador tiver pouca |
+| — | `--jobs` / `n_jobs` | 0 (todos os núcleos) | Quantos tipos celulares o DESeq2 analisa ao mesmo tempo. Cada processo extra usa até cerca de 360 MB; o principal chega a cerca de 2,3 GB no Kang 2018. Use 1 ou 2 se o computador tiver pouca memória |
 | Expressão diferencial | `--no-de` desliga | ligada | Pseudobulk + DESeq2; precisa de pelo menos 2 amostras por condição em cada tipo |
 | — | `min_cells_pseudobulk` | 10 | Mínimo de células para um grupo amostra × tipo entrar na estatística |
 | — | `reference_condition` | primeira em ordem alfabética | Condição de referência do log2FC (no Kang, `ctrl`) |
@@ -164,6 +166,7 @@ Para cada análise `<nome>`:
 | --- | --- |
 | `resultados/<nome>/qc_por_amostra.csv` | células antes/depois do QC, mediana de genes e % mitocondrial |
 | `resultados/<nome>/metricas_integracao.json` | mistura de amostras e separação de tipos, antes e depois |
+| `resultados/<nome>/parametros.json`, `versoes.json` | parâmetros usados e versões do Python e das bibliotecas: a mesma entrada com as mesmas versões dá o mesmo resultado |
 | `resultados/<nome>/composicao_por_amostra.csv` | % de cada tipo celular por amostra |
 | `resultados/<nome>/pseudobulk_amostras.csv` | grupos amostra × tipo usados na estatística |
 | `resultados/<nome>/expressao_diferencial.csv` | DESeq2 por tipo celular: log2FC, p, padj, desenho |
@@ -196,12 +199,16 @@ Kang 2018 (24.673 células, 16 amostras), Linux com 2 núcleos. O Streamlit quas
 
 | Etapa | 0.3.0 | 0.3.1 | Por quê |
 | --- | --- | --- | --- |
-| Expressão diferencial (DESeq2, 7 tipos) | 147 s | cerca de 95 s | Um modelo estatístico por tipo celular, com milhares de genes cada. Agora cada tipo roda num processo, em paralelo |
+| Expressão diferencial (DESeq2, 7 tipos) | 147 s | 87 a 100 s | Um modelo estatístico por tipo celular, com milhares de genes cada. Agora cada tipo roda num processo, em paralelo |
 | Primeira busca de vizinhos | 30 s | 30 s; no app, em segundo plano | Quase tudo é compilação: o numba traduz o código do pynndescent para código de máquina uma vez por processo. O app faz isso ao abrir, enquanto você escolhe os dados |
 | UMAP (antes e depois da integração) | 29 s | igual | Otimização iterativa do mapa em 2D, com semente fixa (roda num núcleo só) |
-| Normalização, genes variáveis e PCA | 22 s | cerca de 13 s | PCA com `covariance_eigh`: exato como o `arpack` e cerca de 4 vezes mais rápido nesse tamanho |
-| Harmony | 15 s | igual | Alterna agrupamento e correção do PCA até as amostras se misturarem |
-| Leitura, QC, Leiden, anotação, métricas e gravação | cerca de 25 s | um pouco menos | O Leiden do mapa "antes" deixou de rodar (era descartado) |
+| Normalização, genes variáveis e PCA | 22 s | cerca de 13 s | PCA com `covariance_eigh`: exato como o `arpack` e cerca de 3 vezes mais rápido (11,8 → 3,6 s nesse tamanho) |
+| Harmony | 15 s | igual (15 a 19 s entre execuções) | Alterna agrupamento e correção do PCA até as amostras se misturarem |
+| Leitura, QC, Leiden, anotação, métricas e gravação | cerca de 25 s | cerca de 12 s | O Leiden do mapa "antes" deixou de rodar (era descartado). Parte da diferença é importação e leitura a frio na medição da 0.3.0 (cerca de 10 s), não do código |
+
+Medido de ponta a ponta pela linha de comando (Kang 2018, 2 núcleos, arquivo local): 191,5 s com 2 processos e 265,6 s com `--jobs 1`. A rodada final da 0.3.2, com a mesma configuração, levou 184,3 s. No mesmo roteiro de medição, etapa por etapa, a 0.3.0 levou 268 s e a 0.3.1, 206 s (cerca de 12 s dessa diferença vêm de importação e leitura a frio na medição da 0.3.0). O 298 s que a linha de comando da 0.3.0 mostrou incluía o download do arquivo.
+
+A primeira análise depois de instalar o pacote leva cerca de 77 s a mais: o cache em disco do numba ainda está vazio, e a primeira busca de vizinhos leva cerca de 106 s em vez de 30 s. Medido no Python 3.13 (105,9 s e 29,5 s) e no 3.14.6 (107,0 s e 29,8 s); as execuções seguintes usam o cache. Por isso a primeira rodada completa no 3.14 levou 253,2 s e a segunda, 190,7 s (o 3.13, com o cache pronto, 184,3 s): o Python 3.14 não é mais lento, o cache estava vazio (`provas/logs/2026-11-03/numba_real.txt`).
 
 Os resultados não mudam: as 57.908 linhas da expressão diferencial saem idênticas às da 0.3.0, assim como os rótulos e as métricas. Com mais núcleos, a expressão diferencial tende ao tempo do tipo mais lento (cerca de 30 s, as células T). Os tempos variam cerca de 10% de uma execução para outra.
 
@@ -215,7 +222,7 @@ Os resultados não mudam: as 57.908 linhas da expressão diferencial saem idênt
 ## Desenvolvimento
 
 ```powershell
-pytest        # 21 testes: leitores, planilha, desenho das amostras, pseudobulk, métricas, DESeq2 em paralelo = um de cada vez, pipeline ponta a ponta, CLI
+pytest        # 28 testes: leitores, planilha, desenho das amostras, pseudobulk, métricas, DESeq2 em paralelo = um de cada vez, pipeline ponta a ponta, CLI, app sem erro, e depreciação = falha
 ```
 
 ## Referências

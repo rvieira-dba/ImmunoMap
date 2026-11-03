@@ -1,0 +1,39 @@
+consulta em 2026-11-03 (UTC) · fonte: pypi.org/pypi/<pacote>/json (última versão de cada pacote, dependências sem 'extra')
+pilha do ImmunoMap 0.3.2 usada na conferência: scanpy 1.12.5, anndata 0.13.4, pandas 3.0.5, numpy 2.5.3, scikit-learn 1.9.1, pydeseq2 0.5.4, harmonypy 0.1.0
+
+pacote             versão    data        Requires-Python  faixas que o pacote aceita (✗ = exclui a versão do ImmunoMap)
+squidpy            1.8.4     2026-10-29  >=3.12           scanpy >=1.9.3 ✓; anndata >=0.9 ✓; pandas >=2.1 ✓; numpy >=1.23 ✓; scikit-learn >=0.24 ✓
+scvi-tools         1.5.2     2026-10-28  >=3.12           scanpy >=1.11 ✓; anndata (qualquer) ✓; pandas (qualquer) ✓; numpy (qualquer) ✓; scikit-learn (qualquer) ✓
+cellrank           2.3.3     2026-09-16  >=3.12           scanpy >=1.11 ✓; anndata >=0.11 ✓; pandas >=2.2 ✓; numpy >=2 ✓; scikit-learn >=1.6 ✓
+scvelo             0.3.4     2026-02-24  >=3.8            scanpy >=1.5 ✓; anndata >=0.7.5 ✓; pandas !=1.4.0,>=1.1.1 ✓; numpy >=1.17 ✓; scikit-learn >=0.21.2 ✓
+decoupler          2.3.1     2026-10-26  >=3.12           anndata (qualquer) ✓
+pertpy             1.5.0     2026-11-03  >=3.13           scanpy (qualquer) ✓; anndata (qualquer) ✓; scikit-learn >=1.4 ✓
+scirpy             0.25.1    2026-08-21  >=3.12           scanpy >=1.9.3 ✓; anndata >=0.9 ✓; pandas >=2.3 ✓; numpy >=1.17 ✓; scikit-learn (qualquer) ✓
+muon               0.2.1     2026-10-27  >=3.12           scanpy (qualquer) ✓; anndata (qualquer) ✓; pandas >=1 ✓; numpy (qualquer) ✓; scikit-learn (qualquer) ✓
+mudata             0.4.1     2026-08-17  >=3.12           anndata >=0.11 ✓; pandas >=1.4 ✓; numpy (qualquer) ✓
+spatialdata        0.8.0     2026-07-02  >=3.12           anndata >=0.9.1 ✓; pandas (qualquer) ✓; numpy (qualquer) ✓
+celltypist         1.7.1     2025-06-25  >=3.6            scanpy >=1.7.0 ✓; pandas >=1.0.5 ✓; numpy >=1.19.0 ✓; scikit-learn >=0.24.1 ✓
+scrublet           0.2.3     2020-12-29  —                pandas (qualquer) ✓; numpy (qualquer) ✓; scikit-learn (qualquer) ✓
+bbknn              1.6.0     2023-07-12  >=3.7            pandas (qualquer) ✓; numpy (qualquer) ✓; scikit-learn >=1.0.2 ✓
+scanorama          1.7.4     2023-10-07  —                numpy >=1.12.0 ✓; scikit-learn >=0.20rc1 ✓
+liana              2.1.0     2026-10-31  >=3.12           scanpy >=1.12 ✓; anndata >=0.13 ✓; pandas (qualquer) ✓
+omicverse          2.3.2     2026-09-23  >=3.9            scanpy >=1.9 ✓; anndata <0.14,>=0.10 ✓; pandas <3.0.0,>=1.5 ✗; numpy >=1.23 ✓; scikit-learn >=1.2 ✓
+scib               1.1.7     2025-01-13  >=3.9            scanpy >=1.5 ✓; anndata >=0.7.2 ✓; pandas >=2 ✓; numpy (qualquer) ✓; scikit-learn (qualquer) ✓
+scgen              2.1.0     2022-04-25  >=3.7,<4.0       scanpy >=1.6 ✓; anndata >=0.7.5 ✓
+scarches           0.6.1     2024-02-29  —                scanpy >=1.6.0 ✓; anndata >=0.7.4 ✓; pandas >=1.1.2 ✓; numpy >=1.19.2 ✓; scikit-learn >=0.23.2 ✓
+rapids-singlecell  0.18.1    2026-10-12  <3.15,>=3.12     scanpy >=1.10.0 ✓; anndata >=0.12.14 ✓; pandas (qualquer) ✓; numpy >=1.26 ✓; scikit-learn (qualquer) ✓
+infercnvpy         0.6.1     2025-09-01  >=3.10           scanpy >=1.10 ✓; anndata >=0.7.3 ✓; pandas >=1 ✓; numpy >=1.20 ✓
+palantir           1.4.5     2026-07-15  >=3.9            scanpy >=1.6.0 ✓; anndata >=0.8.0 ✓; pandas >=0.22.0 ✓; numpy >=1.17.0 ✓; scikit-learn (qualquer) ✓
+moscot             0.5.2     2026-08-25  >=3.11           scanpy >=1.9.3 ✓; anndata >=0.9.1 ✓; pandas >=2.0.1 ✓; numpy >=1.20.0 ✓
+ehrapy             0.16.0    2026-11-02  <3.15,>=3.12     scanpy >=1.12 ✓; numpy >=2.0.0 ✓; scikit-learn >=1.6 ✓
+cell2location      0.1.5     2025-09-24  >=3.10           scanpy (qualquer) ✓; pandas (qualquer) ✓; numpy (qualquer) ✓
+popv               0.6.1     2026-03-03  >=3.11           scanpy (qualquer) ✓; anndata (qualquer) ✓; scikit-learn <1.8.0 ✗; harmonypy <0.1.0 ✗
+pydeseq2           0.5.4     2026-01-23  >=3.11           anndata >=0.11.0 ✓; pandas >=2.2.0 ✓; numpy >=2.0.0 ✓; scikit-learn >=1.4.0 ✓
+scanpy             1.12.5    2026-10-29  >=3.12           anndata >=0.10.8 ✓; pandas >=2.3 ✓; numpy >=2 ✓; scikit-learn >=1.6 ✓
+anndata            0.13.4    2026-09-18  >=3.12           pandas >=2.3 ✓; numpy >=2.1 ✓
+sc-toolbox         0.12.3    2023-06-12  >=3.9.0,<4       scanpy >=1.7.2 ✓; pandas >=1.2.4 ✓; scikit-learn >=0.24.1 ✓
+
+pacotes cuja última versão EXCLUI algo da pilha do ImmunoMap: 2 de 30 consultados
+  omicverse 2.3.2: exige pandas <3.0.0,>=1.5, e o ImmunoMap instala pandas 3.0.5
+  popv 0.6.1: exige scikit-learn <1.8.0, e o ImmunoMap instala scikit-learn 1.9.1
+  popv 0.6.1: exige harmonypy <0.1.0, e o ImmunoMap instala harmonypy 0.1.0

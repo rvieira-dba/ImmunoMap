@@ -1,0 +1,16 @@
+=== pandas 2.3.3 + pydeseq2 0.5.2 (sobreposição via PYTHONPATH; o resto da pilha é a do contêiner, Python 3.13)
+python 3.13.18 | pandas 2.3.3 | pydeseq2 0.5.2 | anndata 0.13.4 | numpy 2.5.3
+DE ok: 400 linhas
+DESeq2 direto ok
+   1× FutureWarning em <sobreposicao>/pydeseq2/dds.py:784 — Setting an item of incompatible dtype is deprecated and will raise an 
+   1× UserWarning em <sobreposicao>/pydeseq2/dds.py:807 — The dispersion trend curve fitting did not converge. Switching to a me
+   1× UserWarning em <sobreposicao>/pydeseq2/dds.py:541 — As the residual degrees of freedom is less than 3, the distribution of
+   1× FutureWarning em <sobreposicao>/pydeseq2/dds.py:910 — Setting an item of incompatible dtype is deprecated and will raise an 
+   1× FutureWarning em <sobreposicao>/pydeseq2/dds.py:971 — Setting an item of incompatible dtype is deprecated and will raise an 
+
+=== pandas 2.3.3 + pydeseq2 0.5.4 (sobreposição via PYTHONPATH)
+python 3.13.18 | pandas 2.3.3 | pydeseq2 0.5.4 | anndata 0.13.4 | numpy 2.5.3
+DE ok: 400 linhas
+DESeq2 direto ok
+   1× UserWarning em <sobreposicao>/pydeseq2/dds.py:822 — The dispersion trend curve fitting did not converge. Switching to a me
+   1× UserWarning em <sobreposicao>/pydeseq2/dds.py:548 — As the residual degrees of freedom is less than 3, the distribution of

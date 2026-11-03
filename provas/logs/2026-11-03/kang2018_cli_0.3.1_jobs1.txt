@@ -1,0 +1,54 @@
+    2.1  Usando cópia local dados/kang2018.h5ad
+    2.3  Controle de qualidade por amostra
+    3.0  Normalização, genes variáveis e PCA
+   16.1  Vizinhança, UMAP (X_pca)
+   60.9  Integração com Harmony
+   75.5  Vizinhança, UMAP e Leiden (X_harmony)
+   91.6  Grupos finos para a anotação (resolução 1.5)
+   92.3  Anotação por marcadores clássicos
+  122.3  Expressão diferencial: B cells (pareado) · 27 s
+  149.0  Expressão diferencial: CD14+ Monocytes (pareado) · 27 s
+  170.9  Expressão diferencial: Dendritic cells (pareado) · 22 s
+  170.9     nota (Dendritic cells): a curva de dispersão não convergiu; o DESeq2 usou a média (comum em grupos pequenos)
+  192.7  Expressão diferencial: FCGR3A+ Monocytes (pareado) · 22 s
+  216.1  Expressão diferencial: NK cells (pareado) · 23 s
+  216.1     nota (NK cells): a curva de dispersão não convergiu; o DESeq2 usou a média (comum em grupos pequenos)
+  229.1  Expressão diferencial: Platelets (não pareado) · 13 s
+  261.7  Expressão diferencial: T cells (pareado) · 33 s
+  261.8  Gravando tabelas, figuras e o .h5ad final
+  265.6  
+  265.6  📋 QC por amostra:
+  265.6             sample  celulas_antes  celulas_depois  mantidas_%  mediana_genes
+  265.6  patient_1015_ctrl           2738            2738       100.0          528.0
+  265.6  patient_1015_stim           2352            2352       100.0          551.0
+  265.6  patient_1016_ctrl           1723            1723       100.0          469.0
+  265.6  patient_1016_stim           1635            1635       100.0          491.0
+  265.6   patient_101_ctrl            858             858       100.0          534.0
+  265.6   patient_101_stim           1166            1166       100.0          546.0
+  265.6  patient_1039_ctrl            461             408        88.5          564.0
+  265.6  patient_1039_stim            641             584        91.1          567.0
+  265.6   patient_107_ctrl            517             517       100.0          542.0
+  265.6   patient_107_stim            525             525       100.0          541.0
+  265.6  patient_1244_ctrl           1879            1879       100.0          512.0
+  265.6  patient_1244_stim           1464            1464       100.0          550.0
+  265.6  patient_1256_ctrl           2108            2108       100.0          517.0
+  265.6  patient_1256_stim           2026            2026       100.0          534.0
+  265.6  patient_1488_ctrl           2031            2030       100.0          478.0
+  265.6  patient_1488_stim           2549            2549       100.0          512.0
+  265.6  
+  265.6  📋 Integração (0–1, maior é melhor):
+  265.6    sem integração  mistura de amostras 0.61 · separação de tipos 0.60
+  265.6    Harmony         mistura de amostras 0.79 · separação de tipos 0.63
+  265.6  
+  265.6  📋 Genes diferenciais (padj < 0,05, |log2FC| > 1) por tipo:
+  265.6  cell_type
+  265.6  B cells               508
+  265.6  CD14+ Monocytes      2185
+  265.6  Dendritic cells       913
+  265.6  FCGR3A+ Monocytes     868
+  265.6  NK cells              338
+  265.6  Platelets             163
+  265.6  T cells               504
+  265.6  
+  265.6  ✅ Resultados em resultados/kang2018 e figuras/kang2018
+  265.6  TOTAL 265.6 s · rc 0 · memória: processo principal 2316 MB, maior processo filho 0 MB (0 filhos), pico somado 2316 MB

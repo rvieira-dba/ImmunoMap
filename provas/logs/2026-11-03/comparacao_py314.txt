@@ -1,0 +1,19 @@
+IGUAL      expressão diferencial (cell_type, gene) 57908 linhas
+IGUAL         maior diferença em log2FoldChange 0.00e+00
+IGUAL         maior diferença em pvalue 0.00e+00
+IGUAL         maior diferença em padj 0.00e+00
+IGUAL         maior diferença em baseMean 0.00e+00
+IGUAL         maior diferença em lfcSE 0.00e+00
+IGUAL         maior diferença em stat 0.00e+00
+IGUAL         coluna 'desenho' (pareado / não pareado) 
+IGUAL         genes diferenciais por tipo {'B cells': 508, 'CD14+ Monocytes': 2185, 'Dendritic cells': 913, 'FCGR3A+ Monocytes': 868, 'NK cells': 338, 'Platelets': 163, 'T cells': 504}
+IGUAL      células mantidas (mesmos códigos de barras, mesma ordem) 24562 células
+IGUAL      rótulos 'cell_type' 100.000% das células
+IGUAL      rótulos 'leiden' 100.000% das células
+IGUAL      rótulos 'leiden_anotacao' 100.000% das células
+IGUAL      métricas de integração (json) maior diferença 6.66e-16 (PCA arpack × covariance_eigh) · {"sem integração": {"mistura_lotes": 0.61, "separacao_tipos": 0.603}, "Harmony": {"mistura_lotes": 0.794, "separacao_tipos": 0.629}}
+IGUAL      composicao_por_amostra.csv 
+IGUAL      qc_por_amostra.csv 
+IGUAL      pseudobulk_amostras.csv 
+
+VEREDITO: tudo igual à 0.3.0

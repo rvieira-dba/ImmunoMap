@@ -1,0 +1,6 @@
+30 PCs · semente 0 · covariance_eigh: 8 grupos no mapa, 12 finos | arpack: 0 células com outro rótulo (0.00%), 8/12 grupos | randomized: 46 células com outro rótulo (1.70%), 8/12 grupos
+30 PCs · semente 1 · covariance_eigh: 8 grupos no mapa, 13 finos | arpack: 0 células com outro rótulo (0.00%), 8/13 grupos | randomized: 58 células com outro rótulo (2.15%), 8/13 grupos
+30 PCs · semente 2 · covariance_eigh: 7 grupos no mapa, 12 finos | arpack: 0 células com outro rótulo (0.00%), 7/12 grupos | randomized: 62 células com outro rótulo (2.30%), 7/13 grupos
+10 PCs · semente 0 · covariance_eigh: 10 grupos no mapa, 18 finos | arpack: 0 células com outro rótulo (0.00%), 10/18 grupos | randomized: 86 células com outro rótulo (3.19%), 9/18 grupos
+10 PCs · semente 1 · covariance_eigh: 10 grupos no mapa, 16 finos | arpack: 0 células com outro rótulo (0.00%), 10/16 grupos | randomized: 80 células com outro rótulo (2.97%), 10/19 grupos
+10 PCs · semente 2 · covariance_eigh: 10 grupos no mapa, 18 finos | arpack: 0 células com outro rótulo (0.00%), 10/18 grupos | randomized: 154 células com outro rótulo (5.71%), 9/17 grupos

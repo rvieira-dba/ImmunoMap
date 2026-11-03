@@ -1,0 +1,261 @@
+=== Python 3.12 + pandas 3.1.0 (instalado à parte com PYTHONPATH). Parte 1: um teste que grava e lê .h5ad, traceback curto (--tb=short)
+pandas 3.1.0 | scanpy 1.12.5 | anndata 0.13.4
+F                                                                        [100%]
+=================================== FAILURES ===================================
+________________________ test_h5ad_prefers_counts_layer ________________________
+tests/test_io.py:56: in test_h5ad_prefers_counts_layer
+    a.write_h5ad(p)
+../venv/lib/python3.12/site-packages/anndata/_core/anndata.py:1732: in write_h5ad
+    write_h5ad(
+../venv/lib/python3.12/site-packages/anndata/_io/utils.py:363: in raise_error_if_dataset_2d_present
+    return write(store, adata, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../venv/lib/python3.12/site-packages/anndata/_io/h5ad.py:111: in write_h5ad
+    write_elem(
+../venv/lib/python3.12/site-packages/anndata/_io/specs/registry.py:546: in write_elem
+    Writer(_REGISTRY).write_elem(store, k, elem, dataset_kwargs=dataset_kwargs)
+../venv/lib/python3.12/site-packages/anndata/_io/specs/registry.py:413: in write_elem
+    return write_func(store, k, elem, dataset_kwargs=dataset_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../venv/lib/python3.12/site-packages/anndata/_io/specs/registry.py:96: in wrapper
+    result = func(g, k, *args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../venv/lib/python3.12/site-packages/anndata/_io/specs/methods.py:190: in wrapper
+    return func(f, k, val, _writer=_writer, dataset_kwargs=dataset_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../venv/lib/python3.12/site-packages/anndata/_io/specs/methods.py:1082: in write_dataframe
+    _writer.write_elem(
+../venv/lib/python3.12/site-packages/anndata/_io/specs/registry.py:413: in write_elem
+    return write_func(store, k, elem, dataset_kwargs=dataset_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../venv/lib/python3.12/site-packages/anndata/_io/specs/registry.py:96: in wrapper
+    result = func(g, k, *args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../venv/lib/python3.12/site-packages/anndata/_io/specs/methods.py:1269: in write_nullable
+    and not pd.options.future.infer_string
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../pd310/pandas/_config/config.py:454: in __getattr__
+    return get_option(prefix)
+           ^^^^^^^^^^^^^^^^^^
+../../pd310/pandas/_config/config.py:190: in get_option
+    return _get_option_impl(pat)
+           ^^^^^^^^^^^^^^^^^^^^^
+../../pd310/pandas/_config/config.py:194: in _get_option_impl
+    key = _get_single_key(pat, warn=warn)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../pd310/pandas/_config/config.py:139: in _get_single_key
+    _warn_if_deprecated(key, extra_stacklevel=extra_stacklevel)
+../../pd310/pandas/_config/config.py:752: in _warn_if_deprecated
+    warnings.warn(
+E   pandas.errors.Pandas4Warning: The 'future.infer_string' option is deprecated and will be removed in pandas 4.0. Inferring str dtype for string data has been the default since pandas 3.0, and it will no longer be possible to disable it.
+E   Error raised while writing key '_index' of <class 'h5py._hl.group.Group'> to /obs
+=========================== short test summary info ============================
+FAILED tests/test_io.py::test_h5ad_prefers_counts_layer - pandas.errors.Panda...
+1 failed in 0.20s
+rc=1
+
+=== Parte 2: mesma pilha, ignorando só o aviso 'future.infer_string' (para ver a segunda origem), 28 testes, --tb=short
+..FF...F.....F..............                                             [100%]
+=================================== FAILURES ===================================
+___________________ test_end_to_end_recovers_stimulated_gene ___________________
+tests/test_analysis.py:48: in test_end_to_end_recovers_stimulated_gene
+    res = run(toy_counts.copy(), _cfg(tmp_path, resolution=0.3), save=True, name="toy")
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/immunomap/pipeline.py:84: in run
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/immunomap/analysis/steps.py:69: in normalise_and_reduce
+    sc.pp.highly_variable_genes(adata, n_top_genes=min(cfg.n_top_genes, adata.n_vars - 1),
+../venv/lib/python3.12/site-packages/scanpy/preprocessing/_highly_variable_genes.py:827: in highly_variable_genes
+    df = _highly_variable_genes_batched(
+../venv/lib/python3.12/site-packages/scanpy/preprocessing/_highly_variable_genes.py:596: in _highly_variable_genes_batched
+    df = pd.concat(dfs, axis=0)
+         ^^^^^^^^^^^^^^^^^^^^^^
+../../pd310/pandas/core/reshape/concat.py:426: in concat
+    objs, keys, ndims = _clean_keys_and_objs(objs, keys)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../pd310/pandas/core/reshape/concat.py:839: in _clean_keys_and_objs
+    objs = list(objs)
+           ^^^^^^^^^^
+../venv/lib/python3.12/site-packages/scanpy/preprocessing/_highly_variable_genes.py:580: in <genexpr>
+    func(
+../venv/lib/python3.12/site-packages/scanpy/preprocessing/_highly_variable_genes.py:562: in _per_batch_func
+    return func(adata[batch_mask].copy(), *args, **kwargs)
+                ^^^^^^^^^^^^^^^^^
+../venv/lib/python3.12/site-packages/anndata/_core/anndata.py:1089: in __getitem__
+    return AnnData(self, oidx=oidx, vidx=vidx, asview=True)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../venv/lib/python3.12/site-packages/anndata/_core/anndata.py:274: in __init__
+    self._init_as_view(X, oidx, vidx)
+../venv/lib/python3.12/site-packages/anndata/_core/anndata.py:340: in _init_as_view
+    self._remove_unused_categories(adata_ref.obs, obs_sub, uns)
+/usr/lib/python3.12/functools.py:946: in _method
+    return method.__get__(obj, cls)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../venv/lib/python3.12/site-packages/anndata/_core/anndata.py:1101: in _remove_unused_categories
+    with pd.option_context("mode.chained_assignment", None):
+/usr/lib/python3.12/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+../../pd310/pandas/_config/config.py:533: in option_context
+    _set_option_impl(pat, val, extra_stacklevel=1)
+../../pd310/pandas/_config/config.py:213: in _set_option_impl
+    key = _get_single_key(k, warn=warn, extra_stacklevel=extra_stacklevel)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../pd310/pandas/_config/config.py:139: in _get_single_key
+    _warn_if_deprecated(key, extra_stacklevel=extra_stacklevel)
+../../pd310/pandas/_config/config.py:752: in _warn_if_deprecated
+    warnings.warn(
+E   pandas.errors.Pandas4Warning: The 'mode.chained_assignment' option is deprecated. It has had no effect since pandas 3.0, which removed the SettingWithCopyWarning it controlled. Chained assignment now emits a ChainedAssignmentError warning instead; use warnings.filterwarnings with category=ChainedAssignmentError to silence or escalate it. This option will be removed in pandas 4.0.
+___________________ test_cell_types_named_on_finer_partition ___________________
+tests/test_analysis.py:64: in test_cell_types_named_on_finer_partition
+    res = run(toy_counts.copy(), _cfg(tmp_path, resolution=0.3, annotation_resolution=2.0, integration="none"),
+src/immunomap/pipeline.py:84: in run
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/immunomap/analysis/steps.py:69: in normalise_and_reduce
+    sc.pp.highly_variable_genes(adata, n_top_genes=min(cfg.n_top_genes, adata.n_vars - 1),
+../venv/lib/python3.12/site-packages/scanpy/preprocessing/_highly_variable_genes.py:827: in highly_variable_genes
+    df = _highly_variable_genes_batched(
+../venv/lib/python3.12/site-packages/scanpy/preprocessing/_highly_variable_genes.py:596: in _highly_variable_genes_batched
+    df = pd.concat(dfs, axis=0)
+         ^^^^^^^^^^^^^^^^^^^^^^
+../../pd310/pandas/core/reshape/concat.py:426: in concat
+    objs, keys, ndims = _clean_keys_and_objs(objs, keys)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../pd310/pandas/core/reshape/concat.py:839: in _clean_keys_and_objs
+    objs = list(objs)
+           ^^^^^^^^^^
+../venv/lib/python3.12/site-packages/scanpy/preprocessing/_highly_variable_genes.py:580: in <genexpr>
+    func(
+../venv/lib/python3.12/site-packages/scanpy/preprocessing/_highly_variable_genes.py:562: in _per_batch_func
+    return func(adata[batch_mask].copy(), *args, **kwargs)
+                ^^^^^^^^^^^^^^^^^
+../venv/lib/python3.12/site-packages/anndata/_core/anndata.py:1089: in __getitem__
+    return AnnData(self, oidx=oidx, vidx=vidx, asview=True)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../venv/lib/python3.12/site-packages/anndata/_core/anndata.py:274: in __init__
+    self._init_as_view(X, oidx, vidx)
+../venv/lib/python3.12/site-packages/anndata/_core/anndata.py:340: in _init_as_view
+    self._remove_unused_categories(adata_ref.obs, obs_sub, uns)
+/usr/lib/python3.12/functools.py:946: in _method
+    return method.__get__(obj, cls)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../venv/lib/python3.12/site-packages/anndata/_core/anndata.py:1101: in _remove_unused_categories
+    with pd.option_context("mode.chained_assignment", None):
+/usr/lib/python3.12/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+../../pd310/pandas/_config/config.py:533: in option_context
+    _set_option_impl(pat, val, extra_stacklevel=1)
+../../pd310/pandas/_config/config.py:213: in _set_option_impl
+    key = _get_single_key(k, warn=warn, extra_stacklevel=extra_stacklevel)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../pd310/pandas/_config/config.py:139: in _get_single_key
+    _warn_if_deprecated(key, extra_stacklevel=extra_stacklevel)
+../../pd310/pandas/_config/config.py:752: in _warn_if_deprecated
+    warnings.warn(
+E   pandas.errors.Pandas4Warning: The 'mode.chained_assignment' option is deprecated. It has had no effect since pandas 3.0, which removed the SettingWithCopyWarning it controlled. Chained assignment now emits a ChainedAssignmentError warning instead; use warnings.filterwarnings with category=ChainedAssignmentError to silence or escalate it. This option will be removed in pandas 4.0.
+____________________ test_parallel_de_matches_one_at_a_time ____________________
+tests/test_analysis.py:107: in test_parallel_de_matches_one_at_a_time
+    res = run(a, cfg1, save=False)
+          ^^^^^^^^^^^^^^^^^^^^^^^^
+src/immunomap/pipeline.py:84: in run
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/immunomap/analysis/steps.py:69: in normalise_and_reduce
+    sc.pp.highly_variable_genes(adata, n_top_genes=min(cfg.n_top_genes, adata.n_vars - 1),
+../venv/lib/python3.12/site-packages/scanpy/preprocessing/_highly_variable_genes.py:827: in highly_variable_genes
+    df = _highly_variable_genes_batched(
+../venv/lib/python3.12/site-packages/scanpy/preprocessing/_highly_variable_genes.py:596: in _highly_variable_genes_batched
+    df = pd.concat(dfs, axis=0)
+         ^^^^^^^^^^^^^^^^^^^^^^
+../../pd310/pandas/core/reshape/concat.py:426: in concat
+    objs, keys, ndims = _clean_keys_and_objs(objs, keys)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../pd310/pandas/core/reshape/concat.py:839: in _clean_keys_and_objs
+    objs = list(objs)
+           ^^^^^^^^^^
+../venv/lib/python3.12/site-packages/scanpy/preprocessing/_highly_variable_genes.py:580: in <genexpr>
+    func(
+../venv/lib/python3.12/site-packages/scanpy/preprocessing/_highly_variable_genes.py:562: in _per_batch_func
+    return func(adata[batch_mask].copy(), *args, **kwargs)
+                ^^^^^^^^^^^^^^^^^
+../venv/lib/python3.12/site-packages/anndata/_core/anndata.py:1089: in __getitem__
+    return AnnData(self, oidx=oidx, vidx=vidx, asview=True)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../venv/lib/python3.12/site-packages/anndata/_core/anndata.py:274: in __init__
+    self._init_as_view(X, oidx, vidx)
+../venv/lib/python3.12/site-packages/anndata/_core/anndata.py:340: in _init_as_view
+    self._remove_unused_categories(adata_ref.obs, obs_sub, uns)
+/usr/lib/python3.12/functools.py:946: in _method
+    return method.__get__(obj, cls)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../venv/lib/python3.12/site-packages/anndata/_core/anndata.py:1101: in _remove_unused_categories
+    with pd.option_context("mode.chained_assignment", None):
+/usr/lib/python3.12/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+../../pd310/pandas/_config/config.py:533: in option_context
+    _set_option_impl(pat, val, extra_stacklevel=1)
+../../pd310/pandas/_config/config.py:213: in _set_option_impl
+    key = _get_single_key(k, warn=warn, extra_stacklevel=extra_stacklevel)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../pd310/pandas/_config/config.py:139: in _get_single_key
+    _warn_if_deprecated(key, extra_stacklevel=extra_stacklevel)
+../../pd310/pandas/_config/config.py:752: in _warn_if_deprecated
+    warnings.warn(
+E   pandas.errors.Pandas4Warning: The 'mode.chained_assignment' option is deprecated. It has had no effect since pandas 3.0, which removed the SettingWithCopyWarning it controlled. Chained assignment now emits a ChainedAssignmentError warning instead; use warnings.filterwarnings with category=ChainedAssignmentError to silence or escalate it. This option will be removed in pandas 4.0.
+______________ test_deseq_deprecation_is_reported_as_deprecation _______________
+tests/test_analysis.py:138: in test_deseq_deprecation_is_reported_as_deprecation
+    res = run(toy_counts.copy(), cfg, save=False, compute_de=False)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/immunomap/pipeline.py:84: in run
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/immunomap/analysis/steps.py:69: in normalise_and_reduce
+    sc.pp.highly_variable_genes(adata, n_top_genes=min(cfg.n_top_genes, adata.n_vars - 1),
+../venv/lib/python3.12/site-packages/scanpy/preprocessing/_highly_variable_genes.py:827: in highly_variable_genes
+    df = _highly_variable_genes_batched(
+../venv/lib/python3.12/site-packages/scanpy/preprocessing/_highly_variable_genes.py:596: in _highly_variable_genes_batched
+    df = pd.concat(dfs, axis=0)
+         ^^^^^^^^^^^^^^^^^^^^^^
+../../pd310/pandas/core/reshape/concat.py:426: in concat
+    objs, keys, ndims = _clean_keys_and_objs(objs, keys)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../pd310/pandas/core/reshape/concat.py:839: in _clean_keys_and_objs
+    objs = list(objs)
+           ^^^^^^^^^^
+../venv/lib/python3.12/site-packages/scanpy/preprocessing/_highly_variable_genes.py:580: in <genexpr>
+    func(
+../venv/lib/python3.12/site-packages/scanpy/preprocessing/_highly_variable_genes.py:562: in _per_batch_func
+    return func(adata[batch_mask].copy(), *args, **kwargs)
+                ^^^^^^^^^^^^^^^^^
+../venv/lib/python3.12/site-packages/anndata/_core/anndata.py:1089: in __getitem__
+    return AnnData(self, oidx=oidx, vidx=vidx, asview=True)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../venv/lib/python3.12/site-packages/anndata/_core/anndata.py:274: in __init__
+    self._init_as_view(X, oidx, vidx)
+../venv/lib/python3.12/site-packages/anndata/_core/anndata.py:340: in _init_as_view
+    self._remove_unused_categories(adata_ref.obs, obs_sub, uns)
+/usr/lib/python3.12/functools.py:946: in _method
+    return method.__get__(obj, cls)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../venv/lib/python3.12/site-packages/anndata/_core/anndata.py:1101: in _remove_unused_categories
+    with pd.option_context("mode.chained_assignment", None):
+/usr/lib/python3.12/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+../../pd310/pandas/_config/config.py:533: in option_context
+    _set_option_impl(pat, val, extra_stacklevel=1)
+../../pd310/pandas/_config/config.py:213: in _set_option_impl
+    key = _get_single_key(k, warn=warn, extra_stacklevel=extra_stacklevel)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../pd310/pandas/_config/config.py:139: in _get_single_key
+    _warn_if_deprecated(key, extra_stacklevel=extra_stacklevel)
+../../pd310/pandas/_config/config.py:752: in _warn_if_deprecated
+    warnings.warn(
+E   pandas.errors.Pandas4Warning: The 'mode.chained_assignment' option is deprecated. It has had no effect since pandas 3.0, which removed the SettingWithCopyWarning it controlled. Chained assignment now emits a ChainedAssignmentError warning instead; use warnings.filterwarnings with category=ChainedAssignmentError to silence or escalate it. This option will be removed in pandas 4.0.
+=========================== short test summary info ============================
+FAILED tests/test_analysis.py::test_end_to_end_recovers_stimulated_gene - pan...
+FAILED tests/test_analysis.py::test_cell_types_named_on_finer_partition - pan...
+FAILED tests/test_analysis.py::test_parallel_de_matches_one_at_a_time - panda...
+FAILED tests/test_analysis.py::test_deseq_deprecation_is_reported_as_deprecation
+4 failed, 24 passed in 7.92s
+rc=1

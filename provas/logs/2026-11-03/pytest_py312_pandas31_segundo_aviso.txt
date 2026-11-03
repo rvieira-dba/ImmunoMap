@@ -1,0 +1,20 @@
+=== Python 3.12 + filtro só para Pandas4Warning future.infer_string (anndata 0.13.4 methods.py:1269)
+16:04:22
+..FF...F.....F..............                                             [100%]
+=================================== FAILURES ===================================
+E   pandas.errors.Pandas4Warning: The 'mode.chained_assignment' option is deprecated. It has had no effect since pandas 3.0, which removed the SettingWithCopyWarning it controlled. Chained assignment now emits a ChainedAssignmentError warning instead; use warnings.filterwarnings with category=ChainedAssignmentError to silence or escalate it. This option will be removed in pandas 4.0.
+<venv>/lib/python3.12/site-packages/pandas/_config/config.py:752: pandas.errors.Pandas4Warning: The 'mode.chained_assignment' option is deprecated. It has had no effect since pandas 3.0, which removed the SettingWithCopyWarning it controlled. Chained assignment now emits a ChainedAssignmentError warning instead; use warnings.filterwarnings with category=ChainedAssignmentError to silence or escalate it. This option will be removed in pandas 4.0.
+E   pandas.errors.Pandas4Warning: The 'mode.chained_assignment' option is deprecated. It has had no effect since pandas 3.0, which removed the SettingWithCopyWarning it controlled. Chained assignment now emits a ChainedAssignmentError warning instead; use warnings.filterwarnings with category=ChainedAssignmentError to silence or escalate it. This option will be removed in pandas 4.0.
+<venv>/lib/python3.12/site-packages/pandas/_config/config.py:752: pandas.errors.Pandas4Warning: The 'mode.chained_assignment' option is deprecated. It has had no effect since pandas 3.0, which removed the SettingWithCopyWarning it controlled. Chained assignment now emits a ChainedAssignmentError warning instead; use warnings.filterwarnings with category=ChainedAssignmentError to silence or escalate it. This option will be removed in pandas 4.0.
+E   pandas.errors.Pandas4Warning: The 'mode.chained_assignment' option is deprecated. It has had no effect since pandas 3.0, which removed the SettingWithCopyWarning it controlled. Chained assignment now emits a ChainedAssignmentError warning instead; use warnings.filterwarnings with category=ChainedAssignmentError to silence or escalate it. This option will be removed in pandas 4.0.
+<venv>/lib/python3.12/site-packages/pandas/_config/config.py:752: pandas.errors.Pandas4Warning: The 'mode.chained_assignment' option is deprecated. It has had no effect since pandas 3.0, which removed the SettingWithCopyWarning it controlled. Chained assignment now emits a ChainedAssignmentError warning instead; use warnings.filterwarnings with category=ChainedAssignmentError to silence or escalate it. This option will be removed in pandas 4.0.
+E   pandas.errors.Pandas4Warning: The 'mode.chained_assignment' option is deprecated. It has had no effect since pandas 3.0, which removed the SettingWithCopyWarning it controlled. Chained assignment now emits a ChainedAssignmentError warning instead; use warnings.filterwarnings with category=ChainedAssignmentError to silence or escalate it. This option will be removed in pandas 4.0.
+<venv>/lib/python3.12/site-packages/pandas/_config/config.py:752: pandas.errors.Pandas4Warning: The 'mode.chained_assignment' option is deprecated. It has had no effect since pandas 3.0, which removed the SettingWithCopyWarning it controlled. Chained assignment now emits a ChainedAssignmentError warning instead; use warnings.filterwarnings with category=ChainedAssignmentError to silence or escalate it. This option will be removed in pandas 4.0.
+=========================== short test summary info ============================
+FAILED tests/test_analysis.py::test_end_to_end_recovers_stimulated_gene - pan...
+FAILED tests/test_analysis.py::test_cell_types_named_on_finer_partition - pan...
+FAILED tests/test_analysis.py::test_parallel_de_matches_one_at_a_time - panda...
+FAILED tests/test_analysis.py::test_deseq_deprecation_is_reported_as_deprecation
+4 failed, 24 passed in 6.62s
+rc=1
+16:04:31

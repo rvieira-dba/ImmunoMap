@@ -2,6 +2,30 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · [SemVer](https://semver.org/).
 
+## [0.3.2] - 2026-11-03
+
+### Alterado
+- **Versões mínimas com motivo e prova.** Python ≥ 3.12 (o 3.10 saiu de suporte em 2026-10-01, PEP 619; no 3.11 o scanpy para na 1.11.5, que chama `Colormap.set_bad`, depreciado no matplotlib 3.11, e o anndata para na 0.12.19, que exige `pandas < 3`), `scanpy` ≥ 1.12, `pydeseq2` ≥ 0.5.4, `anndata` ≥ 0.11, `pandas` ≥ 2.3 e < 3.1 e `matplotlib` ≥ 3.9. O teto do pandas é provisório: com o pandas 3.1.0, o anndata 0.13.4 emite `Pandas4Warning` e 13 dos 28 testes falham; o teto sai quando o anndata corrigir. O piso antigo do `pydeseq2` (≥ 0.4) estava errado: a 0.4 não tem o argumento `design=`, a 0.5.2 e a 0.5.3 quebram no pandas 3 (`TypeError`) e, no pandas 2.3, a 0.5.2 emite `FutureWarning`. O teto `harmonypy < 0.2` continua, agora com a prova (a 0.2.0 exige PyTorch; a 2.x não tem wheel para Windows). [`docs/VERSOES.md`](docs/VERSOES.md) explica cada piso, mostra a última versão que cada Python consegue instalar e quem ainda usa as versões anteriores, com a classe da prova de cada afirmação (medido, teste, documento ou argumento).
+- **Depreciação não passa.** O `pyproject.toml` transforma `DeprecationWarning`, `PendingDeprecationWarning` e `FutureWarning` em erro nos testes. Numa análise, um aviso de depreciação do DESeq2 aparece como a nota "aviso de depreciação (…)" e a análise continua. Antes, o processo que roda o DESeq2 devolvia só o texto do aviso, e o aviso voltava como `UserWarning`: a depreciação ficava escondida.
+
+### Adicionado
+- `versoes.json` em cada análise (ao lado de `parametros.json`, e dentro do `.zip` do app): Python, sistema e versão de cada biblioteca. A mesma entrada com as mesmas versões dá o mesmo resultado.
+- `provas/`: 13 scripts que refazem as medições citadas na documentação (PCA exato e seu tempo, calibração sob hipótese nula, pareado × não pareado, impressão digital entre pilhas, origem dos avisos, versões por Python, vizinhos do ecossistema, pacotes do `harmonypy`, compilação do numba, tempo e memória) e, em `provas/logs/2026-11-03/`, as saídas originais (caminhos temporários trocados por `<repositorio>`, `<venv>`, `<sobreposicao>` e `<trabalho>`).
+- Testes: 28 (eram 21). Novos: a trava de depreciação, a categoria do aviso, o `versoes.json` e o app iniciando sem erro nem aviso de depreciação (`streamlit.testing`).
+
+### Corrigido
+- Documentação de desempenho, refeita com medições de ponta a ponta pela linha de comando (Kang 2018, 2 núcleos, arquivo local): 191,5 s com 2 processos e 265,6 s com `--jobs 1` (a rodada final da 0.3.2, com a mesma configuração, levou 184,3 s). No mesmo roteiro de medição etapa por etapa, a 0.3.0 levou 268 s e a 0.3.1, 206 s; cerca de 12 s dessa diferença são importação e leitura a frio na medição da 0.3.0. O "cerca de 3,5 minutos" da 0.3.1 era uma estimativa. O PCA com `covariance_eigh` medido de novo: 11,8 → 3,6 s (cerca de 3 vezes; a 0.3.1 anunciou "cerca de 4" numa medição sem registro).
+- Memória: o processo principal chega a 2,3 GB no Kang 2018 e cada processo extra, a 359 MB (o README dizia 300 MB por processo).
+
+### Verificado
+- PCA: no PBMC3k, `arpack` e `covariance_eigh` dão os mesmos rótulos nas 6 combinações testadas; o solver `randomized` muda de 46 a 154 rótulos de 2.698 (1,7% a 5,7%).
+- Hipótese nula (8 controles do Kang 2018 divididos 4 × 4 ao acaso, 6 vezes): o teste célula a célula chama de 78 a 183 genes "significativos" em todas as divisões; o pseudobulk com DESeq2, 0 genes em 5 das 6.
+- Em cinco pilhas de bibliotecas, os rótulos finais do PBMC3k saem idênticos nas 6 combinações testadas (30 e 10 componentes × 3 sementes). Quatro pilhas, de Python 3.11 a 3.14 (scanpy 1.11.5 e 1.12.5, pandas 2.3.3 e 3.0, numpy 2.4 e 2.5, scikit-learn 1.9.1), são idênticas em todos os campos. A quinta, em Python 3.10 (numpy 2.2.6, scipy 1.15.3, scikit-learn 1.7.2, medida em outra máquina), difere em ruído de ponto flutuante no PCA e muda a partição do mapa em 1 das 6 combinações (9 grupos × 8); a causa, biblioteca ou máquina, não foi isolada.
+- Kang 2018 de ponta a ponta pela linha de comando com a 0.3.2 (instalações limpas, 2 núcleos): as 57.908 linhas da expressão diferencial são idênticas às da 0.3.0 (diferença 0,0 em log2FC e padj), os rótulos são os mesmos em 100% das células e as métricas de integração não mudam, no Python 3.13 (184,3 s) e no 3.14.6 (253,2 s na primeira execução, com o cache do numba vazio; 190,7 s na segunda).
+- Os 28 testes passam, com depreciação como erro, em Python 3.12, 3.13 e 3.14. No 3.11 com matplotlib 3.11.2, 1 falha (`set_bad` no scanpy 1.11.5); com matplotlib 3.10.9, os 28 passam. Com o pandas 3.1.0 (Python 3.12), 13 falham (`Pandas4Warning` no anndata 0.13.4). Dependências para Windows com Python 3.14: 87 pacotes, todos com wheel.
+- Compilação do numba: a primeira busca de vizinhos do Kang 2018 leva cerca de 106 s com a pasta de cache vazia, cerca de 30 s com o cache em disco e menos de 1 s numa segunda chamada no mesmo processo (Python 3.13 e 3.14.6). A primeira análise depois de instalar leva, por isso, cerca de 77 s a mais, e a "lentidão do 3.14" da primeira medição era o cache vazio, não o Python.
+- Pareado × não pareado (monócitos CD14+ do Kang 2018, os mesmos 16 pseudobulks): 2.185 genes no desenho pareado (`~donor + condition`) e 2.277 no não pareado; 35 só no pareado, 127 só no não pareado e 2.150 nos dois (`provas/pareamento.py`).
+
 ## [0.3.1] - 2026-11-03
 
 ### Alterado

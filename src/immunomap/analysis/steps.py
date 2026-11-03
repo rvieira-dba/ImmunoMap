@@ -6,6 +6,7 @@ and normalisation happens on a copy in ``X``.
 """
 from __future__ import annotations
 
+import builtins
 import logging
 import os
 import warnings
@@ -243,8 +244,22 @@ def pseudobulk(adata: ad.AnnData, cfg: Config, layer: str = "counts") -> Tuple[p
     return counts[keep.values], meta[keep]
 
 
-def _deseq_note(msg: str, cell_type: str) -> str:
+DEPRECATION_CATEGORIES = ("DeprecationWarning", "PendingDeprecationWarning", "FutureWarning")
+
+
+def _category(name: str) -> type:
+    """The warning class a worker reported by name (a worker sends back text, not classes)."""
+    cls = getattr(builtins, name, None)
+    return cls if isinstance(cls, type) and issubclass(cls, Warning) else UserWarning
+
+
+def _deseq_note(msg: str, cell_type: str, category: str = "UserWarning") -> str:
     """A PyDESeq2 warning as one short note in Portuguese."""
+    if category in DEPRECATION_CATEGORIES:
+        short = " ".join(msg.split())
+        short = short if len(short) <= 140 else short[:139] + "…"
+        return (f"   aviso de depreciação ({cell_type}, {category}): {short} "
+                f"Atualize o pydeseq2 (veja docs/VERSOES.md)")
     if "did not converge" in msg:
         return f"   nota ({cell_type}): a curva de dispersão não convergiu; o DESeq2 usou a média (comum em grupos pequenos)"
     if "residual degrees of freedom is less than 3" in msg:
@@ -253,8 +268,12 @@ def _deseq_note(msg: str, cell_type: str) -> str:
 
 
 def _deseq_one(cell_type: str, counts: pd.DataFrame, md: pd.DataFrame, design: str,
-               ref: str, others: List[str]) -> Tuple[str, Dict[str, pd.DataFrame], List[str], float]:
-    """DESeq2 for one cell type. Module-level so a worker process can run it; uses one core."""
+               ref: str, others: List[str]) -> Tuple[str, Dict[str, pd.DataFrame], List[Tuple[str, str]], float]:
+    """
+    DESeq2 for one cell type. Module-level so a worker process can run it; uses one core.
+    Returns the warnings it saw as ``(category name, message)`` so the parent can tell a statistical
+    note from a deprecation.
+    """
     import time
     from pydeseq2.dds import DeseqDataSet
     from pydeseq2.ds import DeseqStats
@@ -269,7 +288,7 @@ def _deseq_one(cell_type: str, counts: pd.DataFrame, md: pd.DataFrame, design: s
             st = DeseqStats(dds, contrast=["condition", other, ref], quiet=True, n_cpus=1)
             st.summary()
             out[other] = st.results_df.copy()
-    msgs = list(dict.fromkeys(str(w.message) for w in caught))
+    msgs = list(dict.fromkeys((w.category.__name__, str(w.message)) for w in caught))
     return cell_type, out, msgs, time.perf_counter() - t0
 
 
@@ -318,11 +337,11 @@ def differential_expression(counts: pd.DataFrame, meta: pd.DataFrame, cfg: Confi
         ct, out, msgs, secs = item
         done[ct] = out
         _say(progress, f"Expressão diferencial: {label(ct)} · {secs:.0f} s")
-        for msg in msgs:
+        for category, msg in msgs:
             if progress is None:
-                warnings.warn(msg, UserWarning, stacklevel=3)
+                warnings.warn(msg, _category(category), stacklevel=3)  # same class the library used
             else:
-                progress(_deseq_note(msg, ct))
+                progress(_deseq_note(msg, ct, category))
 
     workers = _n_workers(cfg, len(jobs))
     if workers > 1:

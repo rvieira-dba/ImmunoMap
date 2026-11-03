@@ -1,0 +1,25 @@
+Participação de cada versão do Python nos downloads (pypistats.org)
+
+Fonte: API pública do pypistats.org, endpoint /api/packages/<pacote>/python_minor, lida em 2026-11-03.
+Janela somada: 2026-10-27 a 2026-11-02 (7 dias).
+As linhas da API só trazem category, date e downloads: não há rótulo de integração contínua nem de espelho.
+Os valores abaixo foram copiados para o gerador do relatório; o JSON bruto da API não foi guardado.
+O scanpy foi relido no fim da sessão e a soma por categoria bateu; o pydeseq2 não foi relido.
+Categorias raras (3.9, 3.15, sem versão) ficaram de fora. A porcentagem é sobre a soma das cinco linhas abaixo.
+É contagem de downloads, não de pessoas.
+
+scanpy: 228.888 downloads nas cinco versões
+  Python 3.10     18288    8,0 %
+  Python 3.11     41994   18,3 %
+  Python 3.12     81032   35,4 %
+  Python 3.13     80257   35,1 %
+  Python 3.14      7029    3,1 %
+  3.10 + 3.11    60282   26,3 %
+
+pydeseq2: 153.250 downloads nas cinco versões
+  Python 3.10      6928    4,5 %
+  Python 3.11     26903   17,6 %
+  Python 3.12     57293   37,4 %
+  Python 3.13     59981   39,1 %
+  Python 3.14      1978    1,3 %
+  3.10 + 3.11    33831   22,1 %

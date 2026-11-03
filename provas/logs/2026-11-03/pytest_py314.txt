@@ -1,0 +1,26 @@
+=== Python 3.14.6, matplotlib 3.11.2 | pandas 3.0.6 | numpy 2.5.4 | scipy 1.18.1 | scanpy 1.12.5 | anndata 0.13.4 | pydeseq2 0.5.4 | harmonypy 0.1.0 | streamlit 1.66.1
+16:07:05
+tests/test_analysis.py::test_parallel_de_matches_one_at_a_time
+  <repositorio>/src/immunomap/pipeline.py:104: UserWarning: As the residual degrees of freedom is less than 3, the distribution of log dispersions is especially asymmetric and likely to be poorly estimated by the MAD.
+    de = steps.differential_expression(counts, pb_meta, cfg, progress) if compute_de else pd.DataFrame()
+tests/test_analysis.py::test_parallel_de_matches_one_at_a_time
+tests/test_analysis.py::test_parallel_de_matches_one_at_a_time
+  <repositorio>/tests/test_analysis.py:109: UserWarning: As the residual degrees of freedom is less than 3, the distribution of log dispersions is especially asymmetric and likely to be poorly estimated by the MAD.
+    serial = steps.differential_expression(counts, meta, cfg1)
+tests/test_analysis.py::test_parallel_de_matches_one_at_a_time
+  <repositorio>/tests/test_analysis.py:109: UserWarning: The dispersion trend curve fitting did not converge. Switching to a mean-based dispersion trend.
+    serial = steps.differential_expression(counts, meta, cfg1)
+tests/test_analysis.py::test_parallel_de_matches_one_at_a_time
+  <repositorio>/tests/test_analysis.py:110: UserWarning: The dispersion trend curve fitting did not converge. Switching to a mean-based dispersion trend.
+    parallel = steps.differential_expression(counts, meta, _cfg(tmp_path, n_jobs=2))
+tests/test_analysis.py::test_parallel_de_matches_one_at_a_time
+  <repositorio>/tests/test_analysis.py:110: UserWarning: As the residual degrees of freedom is less than 3, the distribution of log dispersions is especially asymmetric and likely to be poorly estimated by the MAD.
+    parallel = steps.differential_expression(counts, meta, _cfg(tmp_path, n_jobs=2))
+tests/test_analysis.py::test_deseq_deprecation_is_reported_as_deprecation
+tests/test_analysis.py::test_deseq_deprecation_is_reported_as_deprecation
+  <repositorio>/tests/test_analysis.py:153: UserWarning: The dispersion trend curve fitting did not converge.
+    steps.differential_expression(counts, meta, cfg)
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+28 passed, 12 warnings in 41.39s
+rc=0
+16:07:54

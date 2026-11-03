@@ -1,0 +1,26 @@
+grupo A: ('patient_1015_ctrl', 'patient_1016_ctrl', 'patient_1256_ctrl', 'patient_1488_ctrl')
+grupo B: ['patient_101_ctrl', 'patient_1039_ctrl', 'patient_107_ctrl', 'patient_1244_ctrl']
+20 genes com padj<0,05; 18 com |log2FC|>1
+ligados ao sexo (cromossomos X/Y) entre eles: []
+          baseMean  log2FoldChange    padj
+index                                     
+HPSE      166.9354         -1.5132  0.0003
+IDO1       42.8908          1.9928  0.0004
+IFIT3      18.2407          2.1363  0.0052
+ALOX5AP    66.8221         -1.0939  0.0053
+RGS1       45.1884         -1.6590  0.0191
+VASH1      13.1676         -2.1220  0.0196
+TNFSF10    13.8698          2.9951  0.0220
+HS3ST1     40.7430         -1.3282  0.0424
+CLEC4E    128.0263          0.8232  0.0442
+CYP27A1    68.6507          1.4085  0.0442
+TNFAIP6    54.0529          1.4661  0.0442
+BIRC3      38.5961          1.1448  0.0442
+MGLL        9.5085          2.2074  0.0442
+PLEK2      15.0859         -1.5484  0.0442
+MNDA       30.1882          1.4769  0.0442
+SMAP2      19.8237          1.3504  0.0495
+PLAU       10.1574         -1.7830  0.0495
+HLA-DRB5   59.8653         -4.8383  0.0495
+TGFBI     155.3889         -0.8555  0.0495
+APOL3      23.5334          1.3405  0.0495

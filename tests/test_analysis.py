@@ -1,6 +1,11 @@
+import json
+import warnings
+
 import numpy as np
 import pandas as pd
+import pytest
 
+from immunomap import __version__
 from immunomap.analysis import steps
 from immunomap.config import Config
 from immunomap.pipeline import run
@@ -49,6 +54,9 @@ def test_end_to_end_recovers_stimulated_gene(toy_counts, tmp_path):
     assert (top[top["gene"] == "ISG15"]["log2FoldChange"] > 0).all()
     assert set(res.de["desenho"]) == {"pareado"}
     assert (tmp_path / "r" / "toy" / "expressao_diferencial.csv").exists()
+    versions = json.loads((tmp_path / "r" / "toy" / "versoes.json").read_text(encoding="utf-8"))
+    assert versions["immunomap"] == __version__
+    assert versions["bibliotecas"]["pydeseq2"] and versions["python"]
 
 
 
@@ -109,3 +117,37 @@ def test_n_jobs_must_not_be_negative(tmp_path):
 
     with pytest.raises(ValueError):
         _cfg(tmp_path, n_jobs=-1)
+
+
+# ------------------------------------------------------------------ deprecations are errors here
+@pytest.mark.parametrize("category", [DeprecationWarning, PendingDeprecationWarning, FutureWarning])
+def test_deprecation_gate_is_on(category):
+    """pyproject.toml turns deprecation warnings into errors for the whole suite; this proves the gate trips."""
+    with pytest.raises(category):
+        warnings.warn("controle negativo", category)
+
+
+def test_warning_category_lookup():
+    assert steps._category("FutureWarning") is FutureWarning
+    assert steps._category("ConvergenceWarning") is UserWarning  # not a builtin: falls back to UserWarning
+    assert steps._category("print") is UserWarning  # a builtin, but not a warning class
+
+
+def test_deseq_deprecation_is_reported_as_deprecation(toy_counts, tmp_path, monkeypatch):
+    cfg = _cfg(tmp_path, resolution=0.3, integration="none", n_jobs=1)
+    res = run(toy_counts.copy(), cfg, save=False, compute_de=False)
+    counts, meta = steps.pseudobulk(res.adata, cfg)
+
+    def fake(cell_type, c, md, design, ref, others):  # what a worker sends back: (category name, message)
+        r = pd.DataFrame({"log2FoldChange": [1.0], "padj": [0.01]}, index=["G1"])
+        seen = [("FutureWarning", "Setting an item of incompatible dtype is deprecated."),
+                ("UserWarning", "The dispersion trend curve fitting did not converge.")]
+        return cell_type, {o: r for o in others}, seen, 0.0
+
+    monkeypatch.setattr(steps, "_deseq_one", fake)
+    notes = []
+    steps.differential_expression(counts, meta, cfg, progress=notes.append)
+    assert any("depreciação" in n and "FutureWarning" in n for n in notes)
+    assert any("não convergiu" in n for n in notes)  # a statistical note stays a note
+    with pytest.warns(FutureWarning, match="incompatible dtype"):  # without a progress callback: the real class
+        steps.differential_expression(counts, meta, cfg)
