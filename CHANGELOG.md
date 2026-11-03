@@ -2,6 +2,15 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · [SemVer](https://semver.org/).
 
+## [0.2.1] - 2026-11-02
+
+### Corrigido
+- Saída do terminal sem ruído: some o aviso do scanpy sobre centralizar matriz esparsa (esperado nessa etapa) e os logs com data e hora do harmonypy 0.1.x.
+- Avisos do PyDESeq2 viram uma nota curta em português por tipo celular (por exemplo, quando a curva de dispersão não converge e o DESeq2 usa a média).
+
+### Verificado
+- Kang 2018 de ponta a ponta (24.673 células, 16 amostras, scanpy 1.12.5): cerca de 5 minutos com 2 núcleos. Harmony leva a mistura de amostras de 0,61 a 0,79 sem perder a separação de tipos (0,60 → 0,63); os genes de interferon (ISG15, IFIT1, MX1) sobem em todos os tipos, mais nos monócitos CD14+ (2.185 genes diferenciais). Concordância com os rótulos dos autores: 91,1%.
+
 ## [0.2.0] - 2026-11-02
 
 ### Alterado

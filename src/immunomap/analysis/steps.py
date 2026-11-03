@@ -6,6 +6,8 @@ and normalisation happens on a copy in ``X``.
 """
 from __future__ import annotations
 
+import logging
+import warnings
 from typing import Callable, Dict, List, Optional, Tuple
 
 import anndata as ad
@@ -65,7 +67,10 @@ def normalise_and_reduce(adata: ad.AnnData, cfg: Config, progress: Progress = No
     sc.pp.highly_variable_genes(adata, n_top_genes=min(cfg.n_top_genes, adata.n_vars - 1),
                                 batch_key=batch_key, flavor="seurat")
     hvg = adata[:, adata.var["highly_variable"]].copy()
-    sc.pp.scale(hvg, max_value=10)
+    with warnings.catch_warnings():
+        # scale() zero-centres, so a sparse matrix becomes dense here by design; the warning is noise.
+        warnings.filterwarnings("ignore", message="zero-centering a sparse array/matrix densifies it")
+        sc.pp.scale(hvg, max_value=10)
     n_pcs = min(cfg.n_pcs, hvg.n_vars - 1, hvg.n_obs - 1)
     sc.tl.pca(hvg, n_comps=n_pcs, random_state=cfg.random_state)
     adata.obsm["X_pca"] = hvg.obsm["X_pca"]
@@ -83,8 +88,14 @@ def integrate(adata: ad.AnnData, cfg: Config, progress: Progress = None) -> str:
         _say(progress, "Integração com Harmony")
         import harmonypy
 
-        ho = harmonypy.run_harmony(adata.obsm["X_pca"], adata.obs, [cfg.sample_key],
-                                   random_state=cfg.random_state, verbose=False)
+        log = logging.getLogger("harmonypy")  # 0.1.x logs at INFO even with verbose=False
+        level = log.level
+        log.setLevel(logging.WARNING)
+        try:
+            ho = harmonypy.run_harmony(adata.obsm["X_pca"], adata.obs, [cfg.sample_key],
+                                       random_state=cfg.random_state, verbose=False)
+        finally:
+            log.setLevel(level)
         Z = np.asarray(ho.Z_corr)
         adata.obsm["X_harmony"] = Z.T if Z.shape[0] != adata.n_obs else Z
         return "X_harmony"
@@ -229,6 +240,24 @@ def pseudobulk(adata: ad.AnnData, cfg: Config, layer: str = "counts") -> Tuple[p
     return counts[keep.values], meta[keep]
 
 
+def _report_deseq_warnings(caught, cell_type: str, progress: Progress) -> None:
+    """PyDESeq2 warnings as one short note per message (or re-raised as warnings without a progress sink)."""
+    seen = set()
+    for w in caught:
+        msg = str(w.message)
+        if msg in seen:
+            continue
+        seen.add(msg)
+        if progress is None:
+            warnings.warn(msg, w.category, stacklevel=2)
+        elif "did not converge" in msg:
+            progress(f"   nota ({cell_type}): a curva de dispersão não convergiu; o DESeq2 usou a média (comum em grupos pequenos)")
+        elif "residual degrees of freedom is less than 3" in msg:
+            progress(f"   nota ({cell_type}): poucas réplicas para o desenho; a dispersão fica menos precisa")
+        else:
+            progress(f"   nota do DESeq2 ({cell_type}): {msg}")
+
+
 def differential_expression(counts: pd.DataFrame, meta: pd.DataFrame, cfg: Config,
                             progress: Progress = None) -> pd.DataFrame:
     """
@@ -258,11 +287,17 @@ def differential_expression(counts: pd.DataFrame, meta: pd.DataFrame, cfg: Confi
         _say(progress, f"Expressão diferencial: {cell_type} ({'pareado' if paired else 'não pareado'})")
         md = m[["condition", "donor"]].copy()
         md["condition"] = pd.Categorical(md["condition"], categories=[ref] + others)
-        dds = DeseqDataSet(counts=c, metadata=md, design=design, quiet=True, n_cpus=1)
-        dds.deseq2()
-        for other in others:
-            st = DeseqStats(dds, contrast=["condition", other, ref], quiet=True, n_cpus=1)
-            st.summary()
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            dds = DeseqDataSet(counts=c, metadata=md, design=design, quiet=True, n_cpus=1)
+            dds.deseq2()
+            stats = {}
+            for other in others:
+                st = DeseqStats(dds, contrast=["condition", other, ref], quiet=True, n_cpus=1)
+                st.summary()
+                stats[other] = st
+        _report_deseq_warnings(caught, cell_type, progress)
+        for other, st in stats.items():
             r = st.results_df.copy()
             r.insert(0, "gene", r.index)
             r.insert(0, "contraste", f"{other} vs {ref}")
