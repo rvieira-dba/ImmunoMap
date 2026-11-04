@@ -1,3 +1,12 @@
+# -*- coding: utf-8 -*-
+# ImmunoMap 0.3.2: ambiente exato do teste (Windows 11, Python 3.14.7, 4 núcleos, 2026-11-03).
+# As faixas de versão aceitas ficam no pyproject.toml; este arquivo repete o ambiente testado.
+# Uso, na raiz do repositório:  python -m pip install -r requirements.txt
+# - pandas 3.0.6: com o 3.1.0, o anndata 0.13.4 emite Pandas4Warning (docs/VERSOES.md).
+# - wrapt 2.5.2 (estável): o formulaic 1.2.2 pede wrapt>=1.17.0rc1, e o "rc1" faz o pip
+#   aceitar versões de desenvolvimento (tinha instalado 2.6.0.dev1). A 2.5.2 é a das pilhas
+#   testadas no Linux (provas/logs/2026-11-03/freeze_py3*.txt).
+-e .
 altair==6.3.0
 anndata==0.13.4
 annotated-types==0.8.0
@@ -22,7 +31,6 @@ h5py==3.16.0
 harmonypy==0.1.0
 idna==3.20
 igraph==1.0.0
--e git+https://github.com/rubenslyra/ImmunoMap.git@2b48377f26041017877aea36fc59e5758dca9e92#egg=immunomap
 iniconfig==2.3.1
 interface_meta==2.0.1
 itsdangerous==2.2.0
@@ -44,7 +52,7 @@ numba==0.68.1
 numcodecs==0.17.1
 numpy==2.5.4
 packaging==26.3
-pandas<=3.0.6   # pandas==3.1.0
+pandas==3.0.6
 patsy==1.0.3
 pillow==13.0.0
 pluggy==1.7.0
@@ -88,5 +96,5 @@ urllib3==2.8.0
 uvicorn==0.54.0
 watchdog==6.0.0
 websockets==17.4
-wrapt==2.6.0.dev1
+wrapt==2.5.2
 zarr==3.4.2

@@ -12,10 +12,16 @@ Formato [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · [SemVer](htt
 - `versoes.json` em cada análise (ao lado de `parametros.json`, e dentro do `.zip` do app): Python, sistema e versão de cada biblioteca. A mesma entrada com as mesmas versões dá o mesmo resultado.
 - `provas/`: 13 scripts que refazem as medições citadas na documentação (PCA exato e seu tempo, calibração sob hipótese nula, pareado × não pareado, impressão digital entre pilhas, origem dos avisos, versões por Python, vizinhos do ecossistema, pacotes do `harmonypy`, compilação do numba, tempo e memória) e, em `provas/logs/2026-11-03/`, as saídas originais (caminhos temporários trocados por `<repositorio>`, `<venv>`, `<sobreposicao>` e `<trabalho>`).
 - Testes: 28 (eram 21). Novos: a trava de depreciação, a categoria do aviso, o `versoes.json` e o app iniciando sem erro nem aviso de depreciação (`streamlit.testing`).
+- `requirements.txt`: o ambiente exato do teste no Windows 11 com Python 3.14.7 (`pip install -r requirements.txt` instala tudo, inclusive o próprio ImmunoMap). As faixas aceitas continuam no `pyproject.toml`. O `wrapt` fica na 2.5.2 estável: o `formulaic` 1.2.2 pede `wrapt>=1.17.0rc1`, e esse `rc1` deixa o pip escolher uma versão de desenvolvimento (2.6.0.dev1).
+
+### Removido
+- `.agents/` e `.claude/` saíram do repositório e foram para o `.gitignore`: eram atalhos para dentro da `.venv` local e quebravam em qualquer outro computador.
 
 ### Corrigido
 - Documentação de desempenho, refeita com medições de ponta a ponta pela linha de comando (Kang 2018, 2 núcleos, arquivo local): 191,5 s com 2 processos e 265,6 s com `--jobs 1` (a rodada final da 0.3.2, com a mesma configuração, levou 184,3 s). No mesmo roteiro de medição etapa por etapa, a 0.3.0 levou 268 s e a 0.3.1, 206 s; cerca de 12 s dessa diferença são importação e leitura a frio na medição da 0.3.0. O "cerca de 3,5 minutos" da 0.3.1 era uma estimativa. O PCA com `covariance_eigh` medido de novo: 11,8 → 3,6 s (cerca de 3 vezes; a 0.3.1 anunciou "cerca de 4" numa medição sem registro).
 - Memória: o processo principal chega a 2,3 GB no Kang 2018 e cada processo extra, a 359 MB (o README dizia 300 MB por processo).
+- CHANGELOG: a seção da 0.2.1 voltou; na 0.3.0 ela tinha sido renomeada e misturada à da 0.3.0.
+- Tags do repositório: a `v0.2.0` daqui apontava para o commit da 0.1.0, com a mensagem do Cell-Atlas. Cada versão do ImmunoMap, da 0.1.0 à 0.3.2, passa a ter a própria tag.
 
 ### Verificado
 - PCA: no PBMC3k, `arpack` e `covariance_eigh` dão os mesmos rótulos nas 6 combinações testadas; o solver `randomized` muda de 46 a 154 rótulos de 2.698 (1,7% a 5,7%).
@@ -25,6 +31,10 @@ Formato [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · [SemVer](htt
 - Os 28 testes passam, com depreciação como erro, em Python 3.12, 3.13 e 3.14. No 3.11 com matplotlib 3.11.2, 1 falha (`set_bad` no scanpy 1.11.5); com matplotlib 3.10.9, os 28 passam. Com o pandas 3.1.0 (Python 3.12), 13 falham (`Pandas4Warning` no anndata 0.13.4). Dependências para Windows com Python 3.14: 87 pacotes, todos com wheel.
 - Compilação do numba: a primeira busca de vizinhos do Kang 2018 leva cerca de 106 s com a pasta de cache vazia, cerca de 30 s com o cache em disco e menos de 1 s numa segunda chamada no mesmo processo (Python 3.13 e 3.14.6). A primeira análise depois de instalar leva, por isso, cerca de 77 s a mais, e a "lentidão do 3.14" da primeira medição era o cache vazio, não o Python.
 - Pareado × não pareado (monócitos CD14+ do Kang 2018, os mesmos 16 pseudobulks): 2.185 genes no desenho pareado (`~donor + condition`) e 2.277 no não pareado; 35 só no pareado, 127 só no não pareado e 2.150 nos dois (`provas/pareamento.py`).
+- Windows 11, Python 3.14.7, 4 núcleos, pandas 3.0.6: o Kang 2018 roda de ponta a ponta pelo app. Controle de qualidade (24.673 → 24.562 células) e mistura de amostras (0,61 → 0,79) iguais aos do Linux; separação de tipos e expressão diferencial próximas, não idênticas (0,61 → 0,64 contra 0,60 → 0,63; 57.862 contra 57.908 linhas; 2.201 contra 2.185 genes nos monócitos CD14+). A causa não foi isolada: compare resultados sempre na mesma máquina.
+
+### Problemas conhecidos
+- Com o pandas 3.1, fora da faixa suportada, o `Pandas4Warning` do anndata aparece como "nota do DESeq2" e com a dica errada de atualizar o pydeseq2. A correção entra na próxima versão.
 
 ## [0.3.1] - 2026-11-03
 
@@ -53,7 +63,6 @@ Formato [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · [SemVer](htt
 - **Dados brutos com o paciente na coluna de amostra** (caso do arquivo original do Kang 2018, que só tem `replicate` e `label`): uma amostra com duas condições agora é separada em `<amostra>_<condição>`, e o paciente vira o doador, mantendo o desenho pareado. Antes, o pseudobulk somava controle e estimulado no mesmo grupo e a expressão diferencial saía errada sem aviso.
 - Uma coluna que muda de célula para célula (como `nCount_RNA`) é recusada como amostra ou condição, com mensagem explicando o motivo.
 - App: sugere `replicate`/`patient` como coluna da amostra quando não existe uma coluna `sample`.
-- Saída do terminal sem ruído: some o aviso do scanpy sobre centralizar matriz esparsa (esperado nessa etapa) e os logs com data e hora do harmonypy 0.1.x. Avisos do PyDESeq2 viram uma nota curta em português por tipo celular.
 
 ### Adicionado
 - Logo (pino de mapa com três grupos de células) no app (cabeçalho e ícone da aba), no README e num banner 1280×640 para a prévia do repositório no GitHub (`docs/assets/immunomap-banner.png`).
@@ -62,6 +71,15 @@ Formato [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · [SemVer](htt
 
 ### Verificado
 - Kang 2018 de ponta a ponta pelos dois caminhos, conjunto conhecido e arquivo bruto com as colunas escolhidas: resultados idênticos (24.562 de 24.673 células, 16 amostras, cerca de 4 a 5 minutos com 2 núcleos). O Harmony leva a mistura de amostras de 0,61 a 0,79 sem perder a separação de tipos (0,60 → 0,63). Os genes de interferon sobem em todos os tipos, mais nos monócitos CD14+ (2.185 genes; ISG15 com log2FC 7,8). Concordância com os rótulos dos autores: 91,1%.
+
+## [0.2.1] - 2026-11-02
+
+### Corrigido
+- Saída do terminal sem ruído: some o aviso do scanpy sobre centralizar matriz esparsa (esperado nessa etapa) e os logs com data e hora do harmonypy 0.1.x.
+- Avisos do PyDESeq2 viram uma nota curta em português por tipo celular (por exemplo, quando a curva de dispersão não converge e o DESeq2 usa a média).
+
+### Verificado
+- Kang 2018 de ponta a ponta (24.673 células, 16 amostras, scanpy 1.12.5): cerca de 5 minutos com 2 núcleos. Harmony leva a mistura de amostras de 0,61 a 0,79 sem perder a separação de tipos (0,60 → 0,63); os genes de interferon (ISG15, IFIT1, MX1) sobem em todos os tipos, mais nos monócitos CD14+ (2.185 genes diferenciais). Concordância com os rótulos dos autores: 91,1%.
 
 ## [0.2.0] - 2026-11-02
 
@@ -93,3 +111,11 @@ Formato [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · [SemVer](htt
 - Métricas de integração antes/depois (mistura de amostras e separação de tipos).
 - Pseudobulk por amostra × tipo celular e expressão diferencial com PyDESeq2 (desenho pareado `~donor + condition` quando possível).
 - CLI `immunomap` (`datasets`, `download`, `run`, `app`) e app Streamlit mobile-first, acessível pelo tablet com `immunomap app --lan`.
+
+[0.3.2]: https://github.com/rubenslyra/ImmunoMap/compare/v0.3.1...v0.3.2
+[0.3.1]: https://github.com/rubenslyra/ImmunoMap/compare/v0.3.0...v0.3.1
+[0.3.0]: https://github.com/rubenslyra/ImmunoMap/compare/v0.2.1...v0.3.0
+[0.2.1]: https://github.com/rubenslyra/ImmunoMap/compare/v0.2.0...v0.2.1
+[0.2.0]: https://github.com/rubenslyra/ImmunoMap/compare/v0.1.1...v0.2.0
+[0.1.1]: https://github.com/rubenslyra/ImmunoMap/compare/v0.1.0...v0.1.1
+[0.1.0]: https://github.com/rubenslyra/ImmunoMap/releases/tag/v0.1.0

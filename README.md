@@ -64,6 +64,8 @@ pip install -e ".[scvi]"    # integração com scVI (instala PyTorch, ~2 GB)
 
 Requer Python ≥ 3.12. O 3.10 saiu de suporte em outubro de 2026 e, no 3.11, o pip entrega o scanpy 1.11.5, cujo gráfico chama uma função que o matplotlib 3.11 marcou como depreciada (os testes falham por isso). As dependências foram conferidas para Windows com Python 3.14: todas têm pacote pronto (wheel), então nada precisa de compilador.
 
+Para repetir exatamente o ambiente testado (Windows 11, Python 3.14.7), use `pip install -r requirements.txt` no lugar do `pip install -e ".[dev]"`.
+
 **Versões:** o projeto usa as bibliotecas mais novas que foram testadas, e depreciação derruba os testes. Cada versão mínima tem um motivo e uma prova em [`docs/VERSOES.md`](docs/VERSOES.md), que também mostra quem ainda usa as versões anteriores e por quê.
 
 ## Uso

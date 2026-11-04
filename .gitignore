@@ -15,3 +15,6 @@ _to_delete/
 *.tar.gz
 # cache do scanpy.datasets (pbmc3k_raw, pbmc3k_processed)
 data/
+# atalhos locais de agentes de IA (apontam para dentro da .venv)
+.agents/
+.claude/
